@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Transporte</string>
+    <string name="openDrawer">Abrir</string>
+    <string name="closeDrawer">Cerrar</string>
+
+    <string name="BASE_URL">https://www.chmd.edu.mx/</string>
+    <string name="PATH">WebAdminCirculares/wsTransporte/</string>
+    <string name="SHARED_PREF">mx.edu.transporte.chmd.spref</string>
+    <string name="navigation_drawer_open">open</string>
+    <string name="navigation_drawer_close">close</string>
+</resources>

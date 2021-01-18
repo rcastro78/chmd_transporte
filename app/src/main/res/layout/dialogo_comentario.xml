@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="360dp"
+    tools:context=".ComentarioDialogoActivity"
+
+    android:background="@color/colorPrimaryDark">
+
+
+    <ImageView
+        android:id="@+id/imgLogo"
+        android:layout_width="48dp"
+        android:layout_height="64dp"
+        android:layout_centerHorizontal="true"
+        android:clickable="true"
+
+        app:srcCompat="@drawable/app03" />
+
+
+    <Button
+        android:id="@+id/imbCerrar"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="24dp"
+        android:layout_marginRight="24dp"
+        android:textColor="#fff"
+        android:text="  X  "
+        android:textSize="20dp"
+        android:background="@color/colorPrimaryDark"
+        android:textStyle="bold"
+         />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:layout_width="match_parent"
+        android:layout_height="192dp"
+        android:id="@+id/txtComentario"
+        android:hint="Comentario"
+        android:gravity="top"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:background="#fff"
+        android:layout_below="@id/imgLogo"
+        android:padding="6dp"></com.google.android.material.textfield.TextInputEditText>
+
+     <Button
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_below="@id/txtComentario"
+         android:id="@+id/btnComentario"
+         android:text="Enviar Comentario"
+         android:layout_centerHorizontal="true"
+         android:padding="8dp"
+         android:layout_marginTop="12dp"
+         android:textColor="#fff"
+         android:background="@color/colorPrimary"></Button>
+</RelativeLayout>

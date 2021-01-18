@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view"
+    >
+
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/ruta_man" android:icon="@drawable/app04" android:title="Ruta Mañana" />
+        <item android:id="@+id/ruta_tar" android:icon="@drawable/app04" android:title="Ruta Tarde" />
+
+    </group>
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/cerrar" android:icon="@drawable/app04" android:title="Cerrar Sesión" />
+    </group>
+</menu>

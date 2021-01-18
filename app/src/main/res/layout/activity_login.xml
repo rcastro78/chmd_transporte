@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity"
+    android:weightSum="100"
+   >
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="100">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_weight="95"
+
+            android:background="@color/textoMasOscuro">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:src="@drawable/app03"
+                android:tint="#fff"></ImageView>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="5">
+
+            <TextView
+                android:id="@+id/lblHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="120dp"
+                android:gravity="center_horizontal"
+                android:text="Iniciar Sesión"
+                android:textColor="@color/textoOscuro"
+                android:textSize="24dp"></TextView>
+
+            <EditText
+                android:id="@+id/txtUsuario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblHeader"
+                android:layout_margin="12dp"
+                android:ems="10"
+                android:hint="Usuario"
+                android:inputType="textPersonName"
+                android:paddingLeft="6dp" />
+
+            <EditText
+                android:id="@+id/txtClave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txtUsuario"
+                android:layout_margin="12dp"
+                android:ems="10"
+                android:hint="Clave"
+                android:inputType="textPassword"
+                android:paddingLeft="6dp" />
+
+
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_below="@id/txtClave"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="12dp"
+                android:background="@color/textoMasOscuro"
+                android:text="Iniciar Sesión"
+                android:textAllCaps="false"
+                android:textColor="#fff"></Button>
+
+        </RelativeLayout>
+    </LinearLayout>
+</ScrollView>
+</LinearLayout>
