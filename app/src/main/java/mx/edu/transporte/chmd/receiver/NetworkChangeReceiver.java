@@ -33,8 +33,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
                 context.startService(sincroService);
             }
 
-
-
         }else{
             Toast.makeText(context, "No hay red", Toast.LENGTH_LONG).show();
             Intent sincroService = new Intent(context, SincronizacionService.class);

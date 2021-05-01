@@ -61,9 +61,9 @@ public class LoginActivity extends AppCompatActivity {
         sharedPreferences = this.getSharedPreferences(this.getString(R.string.SHARED_PREF), 0);
         valida = sharedPreferences.getInt("cuentaValida",0);
         if(valida==1){
-            //Intent intent = new Intent(LoginActivity.this,SeleccionRutaActivity.class);
+            Intent intent = new Intent(LoginActivity.this,SeleccionRutaActivity.class);
             //Intent intent = new Intent(LoginActivity.this,MainActivity.class);
-            Intent intent = new Intent(LoginActivity.this,InicioActivity.class);
+            //Intent intent = new Intent(LoginActivity.this,InicioActivity.class);
             startActivity(intent);
             finish();
         }
@@ -141,12 +141,13 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putString("id_usuario",id_usuario);
                                 editor.putString("correo",correo);
                                 editor.putInt("cuentaValida",1);
+
                                 //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
                                 editor.apply();
                                 if(id_usuario.length()>0){
                                     getRutaTransporte(id_usuario);
 
-                                    Intent intent = new Intent(LoginActivity.this,InicioActivity.class);
+                                    Intent intent = new Intent(LoginActivity.this,SeleccionRutaActivity.class);
                                     startActivity(intent);
                                     finish();
 
@@ -223,7 +224,9 @@ public class LoginActivity extends AppCompatActivity {
                                 String tipo_ruta = jsonObject.getString("tipo_ruta");
                                 items.add(new Ruta(id_ruta_h, nombre_ruta, camion, turno, tipo_ruta));
                             }
-                        }catch (Exception ex){}
+                        }catch (Exception ex){
+                            Log.e(LoginActivity.class.getName(),ex.getMessage());
+                        }
 
 
                         try {

@@ -1,34 +1,40 @@
 package mx.edu.transporte.chmd.modelos;
 
 public class Ruta {
-    private String idRutaH;
-    private String nombreRuta;
+    private String id_ruta_h;
+    private String nombre_ruta;
     private String camion;
     private String turno;
-    private String tipoRuta;
+    private String tipo_ruta;
+    private String estatus;
 
-    public Ruta(String idRutaH, String nombreRuta, String camion, String turno, String tipoRuta) {
-        this.idRutaH = idRutaH;
-        this.nombreRuta = nombreRuta;
+    public Ruta(String id_ruta_h, String estatus) {
+        this.id_ruta_h = id_ruta_h;
+        this.estatus = estatus;
+    }
+
+    public Ruta(String id_ruta_h, String nombre_ruta, String camion, String turno, String tipo_ruta) {
+        this.id_ruta_h = id_ruta_h;
+        this.nombre_ruta = nombre_ruta;
         this.camion = camion;
         this.turno = turno;
-        this.tipoRuta = tipoRuta;
+        this.tipo_ruta = tipo_ruta;
     }
 
     public String getIdRutaH() {
-        return idRutaH;
+        return id_ruta_h;
     }
 
-    public void setIdRutaH(String idRutaH) {
-        this.idRutaH = idRutaH;
+    public void setIdRutaH(String id_ruta_h) {
+        this.id_ruta_h = id_ruta_h;
     }
 
     public String getNombreRuta() {
-        return nombreRuta;
+        return nombre_ruta;
     }
 
-    public void setNombreRuta(String nombreRuta) {
-        this.nombreRuta = nombreRuta;
+    public void setNombreRuta(String nombre_ruta) {
+        this.nombre_ruta = nombre_ruta;
     }
 
     public String getCamion() {
@@ -48,10 +54,43 @@ public class Ruta {
     }
 
     public String getTipoRuta() {
-        return tipoRuta;
+        return tipo_ruta;
     }
 
-    public void setTipoRuta(String tipoRuta) {
-        this.tipoRuta = tipoRuta;
+    public void setTipoRuta(String tipo_ruta) {
+        this.tipo_ruta = tipo_ruta;
+    }
+
+
+    public String getId_ruta_h() {
+        return id_ruta_h;
+    }
+
+    public void setId_ruta_h(String id_ruta_h) {
+        this.id_ruta_h = id_ruta_h;
+    }
+
+    public String getNombre_ruta() {
+        return nombre_ruta;
+    }
+
+    public void setNombre_ruta(String nombre_ruta) {
+        this.nombre_ruta = nombre_ruta;
+    }
+
+    public String getTipo_ruta() {
+        return tipo_ruta;
+    }
+
+    public void setTipo_ruta(String tipo_ruta) {
+        this.tipo_ruta = tipo_ruta;
+    }
+
+    public String getEstatus() {
+        return estatus;
+    }
+
+    public void setEstatus(String estatus) {
+        this.estatus = estatus;
     }
 }

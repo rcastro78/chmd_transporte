@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Parcelable;
 import android.util.Log;
@@ -126,11 +127,17 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
         if (turno.equalsIgnoreCase("1")) {
             holder.lblHora.setText("Hora: "+asistencia.getHora_manana());
             holder.lblDireccion.setText(asistencia.getDomicilio());
+            holder.lblParada.setText("Parada: "+asistencia.getOrdenIn());
         } else {
             holder.lblHora.setText("Hora: "+asistencia.getHoraRegreso());
             holder.lblDireccion.setText(asistencia.getDomicilio_s());
+            holder.lblParada.setText("Parada: "+asistencia.getOrdenOut());
         }
-        holder.lblParada.setText("Parada: 1");
+
+       if(!asistencia.isInasist())
+            holder.btnInasistencia.setVisibility(View.GONE);
+        else
+            holder.btnInasistencia.setVisibility(View.VISIBLE);
 
         holder.btnInasistencia.setOnClickListener(this);
 
@@ -146,31 +153,49 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
 
             if(asistencia.getAscenso().equalsIgnoreCase("1")){
                 holder.llPic.setBackgroundColor(Color.parseColor("#ffff85"));
+                holder.imgFotoEstudiante.clearColorFilter();
             }
         //Inasistencias
             if(asistencia.getAscenso().equalsIgnoreCase("2") &&
                 asistencia.getDescenso().equalsIgnoreCase("2")) {
                 holder.llPic.setBackgroundColor(Color.parseColor("#ffe5e8"));
+                holder.imgFotoEstudiante.setColorFilter(Color.parseColor("#C0C0C0C0"), PorterDuff.Mode.SCREEN);
+
             }
             if(asistencia.getAscenso().equalsIgnoreCase("0")){
                 holder.llPic.setBackgroundColor(Color.WHITE);
-
+                holder.imgFotoEstudiante.clearColorFilter();
             }
+
+            //Los niños han bajado en el colegio, estos son los que tienen ascenso 1 y descenso 1
+            if(asistencia.getAscenso().equalsIgnoreCase("1") && asistencia.getDescenso().equalsIgnoreCase("1")){
+                holder.llPic.setBackgroundColor(Color.parseColor("#27ae12"));
+                holder.imgFotoEstudiante.clearColorFilter();
+            }
+
 
         }
 
         if (turno.equalsIgnoreCase("2")) {
             if(asistencia.getAscenso_t().equalsIgnoreCase("1")){
                 holder.llPic.setBackgroundColor(Color.parseColor("#ffff85"));
+                holder.imgFotoEstudiante.clearColorFilter();
             }
             //Inasistencias
             if(asistencia.getAscenso_t().equalsIgnoreCase("2") &&
                     asistencia.getDescenso_t().equalsIgnoreCase("2")) {
                 holder.llPic.setBackgroundColor(Color.parseColor("#ffe5e8"));
+                holder.imgFotoEstudiante.setColorFilter(Color.parseColor("#C0C0C0C0"), PorterDuff.Mode.SCREEN);
             }
             if(asistencia.getAscenso_t().equalsIgnoreCase("0")){
                 holder.llPic.setBackgroundColor(Color.WHITE);
+                holder.imgFotoEstudiante.clearColorFilter();
+            }
 
+            //Los niños llegan a su destino
+            if(asistencia.getAscenso_t().equalsIgnoreCase("1") && asistencia.getDescenso_t().equalsIgnoreCase("1")){
+                holder.llPic.setBackgroundColor(Color.parseColor("#27ae12"));
+                holder.imgFotoEstudiante.clearColorFilter();
             }
 
         }
@@ -179,8 +204,10 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
 
 
         //holder.btnAsistencia.setTag(position);
+        //Esto se debe hacer para que un elemento recuerde su posición en la lista
         holder.btnInasistencia.setTag(position);
         holder.llPic.setTag(position);
+        holder.imgFotoEstudiante.setTag(position);
         return convertView;
     }
 
@@ -192,7 +219,7 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
             int position = (Integer) v.getTag();
             final Asistencia asistencia = items.get(position);
             if (turno.equalsIgnoreCase("1")) {
-                if (asistencia.getAscenso().equalsIgnoreCase("1") &&
+                if (asistencia.getAscenso().equalsIgnoreCase("0") &&
                         asistencia.getDescenso().equalsIgnoreCase("0")){
                     //Mostrar diálogo
 

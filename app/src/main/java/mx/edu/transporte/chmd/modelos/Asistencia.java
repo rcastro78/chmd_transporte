@@ -26,9 +26,10 @@ public class Asistencia {
     private String ascenso_t,descenso_t;
     private String salida;
     private String domicilio_s,grupo,grado,nivel,foto;
-
+    private String ordenIn,ordenOut;
     boolean selected;
     boolean selectedNA;
+    boolean inasist;
     public Asistencia(String idAlumno, String nombreAlumno, String domicilio, String hora_manana,
                       String horaRegreso, String ascenso, String descenso, String domicilio_s,
                       String grupo, String grado, String nivel, String foto, boolean selected, boolean selectedNA,
@@ -55,7 +56,7 @@ public class Asistencia {
     public Asistencia(String tarjeta,String idAlumno, String nombreAlumno, String domicilio, String hora_manana,
                       String horaRegreso, String ascenso, String descenso, String domicilio_s,
                       String grupo, String grado, String nivel, String foto, boolean selected, boolean selectedNA,
-                      String ascenso_t, String descenso_t, String salida) {
+                      String ascenso_t, String descenso_t, String salida, String ordenIn, String ordenOut, boolean inasist) {
         this.idAlumno = idAlumno;
         this.tarjeta = tarjeta;
         this.nombreAlumno = nombreAlumno;
@@ -74,6 +75,10 @@ public class Asistencia {
         this.ascenso_t = ascenso_t;
         this.descenso_t = descenso_t;
         this.salida = salida;
+        this.ordenIn = ordenIn;
+        this.ordenOut = ordenOut;
+
+        this.inasist = inasist;
     }
 
     public String getTarjeta() {
@@ -218,5 +223,29 @@ public class Asistencia {
 
     public void setSalida(String salida) {
         this.salida = salida;
+    }
+
+    public String getOrdenIn() {
+        return ordenIn;
+    }
+
+    public void setOrdenIn(String ordenIn) {
+        this.ordenIn = ordenIn;
+    }
+
+    public String getOrdenOut() {
+        return ordenOut;
+    }
+
+    public void setOrdenOut(String ordenOut) {
+        this.ordenOut = ordenOut;
+    }
+
+    public boolean isInasist() {
+        return inasist;
+    }
+
+    public void setInasist(boolean inasist) {
+        this.inasist = inasist;
     }
 }

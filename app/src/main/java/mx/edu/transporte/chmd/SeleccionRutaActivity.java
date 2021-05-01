@@ -32,7 +32,11 @@ import java.util.List;
 import mx.edu.transporte.chmd.adapter.RutaAdapter;
 import mx.edu.transporte.chmd.modelos.Ruta;
 import mx.edu.transporte.chmd.modelosDB.RutaDB;
+import mx.edu.transporte.chmd.networking.APIUtils;
+import mx.edu.transporte.chmd.networking.ITransporteCHMD;
 import mx.edu.transporte.chmd.servicios.NetworkChangeReceiver;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class SeleccionRutaActivity extends AppCompatActivity {
     TextView lblRuta;
@@ -44,6 +48,7 @@ public class SeleccionRutaActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     String id_usuario;
     int estatus;
+    ITransporteCHMD iTransporteCHMD;
     private ArrayList<Ruta> items = new ArrayList<>();
     NetworkChangeReceiver networkChangeReceiver = new NetworkChangeReceiver();
 
@@ -55,13 +60,13 @@ public class SeleccionRutaActivity extends AppCompatActivity {
         PATH = this.getString(R.string.PATH);
         sharedPreferences = this.getSharedPreferences(this.getString(R.string.SHARED_PREF), 0);
         estatus = sharedPreferences.getInt("estatus",0);
-
+        iTransporteCHMD = APIUtils.getTransporteService();
         id_usuario = sharedPreferences.getString("id_usuario","");
         lblRuta = findViewById(R.id.lblRuta);
         lstRuta = findViewById(R.id.lstRuta);
 
         if(hayConexion())
-            getRutaTransporte(id_usuario);
+            getRutaTransporte2(id_usuario);
         else
             obtenerRutas();
 
@@ -72,6 +77,12 @@ public class SeleccionRutaActivity extends AppCompatActivity {
                 String idRuta = r.getIdRutaH();
                 String nomRuta = r.getNombreRuta();
                 String turno = r.getTurno();
+                String tipo_ruta = r.getTipoRuta();
+                String camion = r.getCamion();
+                String trn = "", truta = "", cmn;
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("nombreRuta",nomRuta);
+                editor.apply();
                 getEstatusRuta(id_usuario,idRuta,nomRuta,turno);
 
 
@@ -97,7 +108,7 @@ public class SeleccionRutaActivity extends AppCompatActivity {
                          }
 
                             if(estatus<2) {
-                                Intent intent = new Intent(SeleccionRutaActivity.this, HomeActivity.class);
+                                Intent intent = new Intent(SeleccionRutaActivity.this, InicioActivity.class);
                                 intent.putExtra("idRuta", ruta_id);
                                 intent.putExtra("estatus",estatus);
                                 intent.putExtra("nomRuta", nomRuta);
@@ -105,6 +116,11 @@ public class SeleccionRutaActivity extends AppCompatActivity {
 
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putInt("estatus",estatus);
+                                editor.putString("idRuta",ruta_id);
+                                editor.putInt("estatus",estatus);
+                                editor.putString("idRuta",ruta_id);
+                                editor.putString("nomRuta",nomRuta);
+                                editor.putString("turno",turno);
                                 editor.apply();
 
                                 startActivity(intent);
@@ -155,6 +171,83 @@ public class SeleccionRutaActivity extends AppCompatActivity {
         // Adding request to request queue
         AppTransporte.getInstance().addToRequestQueue(req);
     }
+
+
+
+    public void getRutaTransporte2(String aux_id){
+        Call<List<Ruta>> rutaTransporte = iTransporteCHMD.getRutaTransporte(aux_id);
+        rutaTransporte.enqueue(new Callback<List<Ruta>>() {
+            @Override
+            public void onResponse(Call<List<Ruta>> call, retrofit2.Response<List<Ruta>> response) {
+                if(response.isSuccessful()){
+                    for(Ruta r : response.body()){
+                        String id_ruta_h = r.getIdRutaH();
+                        String nombre_ruta = r.getNombreRuta();
+                        String camion = r.getCamion();
+                        String turno = r.getTurno();
+                        String tipo_ruta = r.getTipoRuta();
+
+                        String trn="",truta="",cmn="";
+                        if (turno.equalsIgnoreCase("1")) {
+                            trn = "M";
+                        }
+                        if (turno.equalsIgnoreCase("2")) {
+                            trn = "T";
+                        }
+                        if (tipo_ruta.equalsIgnoreCase("1")) {
+                            truta = "G";
+                        }
+                        if (tipo_ruta.equalsIgnoreCase("2")) {
+                            truta = "K";
+                        }
+                        if (tipo_ruta.equalsIgnoreCase("3")) {
+                            truta = "T";
+                        }
+                        if (tipo_ruta.equalsIgnoreCase("4")) {
+                            truta = "R";
+                        }
+                        if (Integer.parseInt(camion) < 10) {
+                            cmn = "0" + camion;
+                        } else {
+                            cmn = camion;
+                        }
+
+                        String codigo = trn + truta + cmn;
+
+
+                        items.add(new Ruta(id_ruta_h,codigo+" "+nombre_ruta,camion,turno,tipo_ruta));
+                    }
+
+                    RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
+                    lstRuta.setAdapter(adapter);
+
+                    //Borrar tabla de rutas
+                    new Delete().from(RutaDB.class).execute();
+                    //Llenar tabla de rutas
+                    for(int j=0; j<items.size(); j++){
+                        RutaDB rutaDB = new RutaDB();
+                        rutaDB.idRuta = items.get(j).getIdRutaH();
+                        rutaDB.nombreRuta = items.get(j).getNombreRuta();
+                        rutaDB.camion = items.get(j).getCamion();
+                        rutaDB.turno = items.get(j).getTurno();
+                        rutaDB.tipo_ruta = items.get(j).getTipoRuta();
+                        rutaDB.save();
+                    }
+
+
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Ruta>> call, Throwable t) {
+
+            }
+        });
+    }
+
+
+
     public void getRutaTransporte(String aux_id){
 
 
@@ -181,7 +274,34 @@ public class SeleccionRutaActivity extends AppCompatActivity {
                                 String camion = jsonObject.getString("camion");
                                 String turno = jsonObject.getString("turno");
                                 String tipo_ruta = jsonObject.getString("tipo_ruta");
-                                items.add(new Ruta(id_ruta_h,nombre_ruta,camion,turno,tipo_ruta));
+                                String trn="",truta="",cmn="";
+                                if (turno.equalsIgnoreCase("1")) {
+                                    trn = "M";
+                                }
+                                if (turno.equalsIgnoreCase("2")) {
+                                    trn = "T";
+                                }
+                                if (tipo_ruta.equalsIgnoreCase("1")) {
+                                    truta = "G";
+                                }
+                                if (tipo_ruta.equalsIgnoreCase("2")) {
+                                    truta = "K";
+                                }
+                                if (tipo_ruta.equalsIgnoreCase("3")) {
+                                    truta = "T";
+                                }
+                                if (tipo_ruta.equalsIgnoreCase("4")) {
+                                    truta = "R";
+                                }
+                                if (Integer.parseInt(camion) < 10) {
+                                    cmn = "0" + camion;
+                                } else {
+                                    cmn = camion;
+                                }
+
+                                String codigo = trn + truta + cmn;
+
+                                items.add(new Ruta(id_ruta_h,codigo+" "+nombre_ruta,camion,turno,tipo_ruta));
                             }
                             RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
                             lstRuta.setAdapter(adapter);

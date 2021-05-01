@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-
+<!--
 <androidx.drawerlayout.widget.DrawerLayout
 
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -9,9 +9,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:elevation="7dp">
-
+-->
 
     <RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
         android:orientation="vertical" android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#fff">
@@ -165,6 +167,7 @@
             </RelativeLayout>
 
 
+
             <LinearLayout
                 android:id="@+id/llContenido"
                 android:layout_width="match_parent"
@@ -174,12 +177,14 @@
                 android:orientation="vertical"
                 android:weightSum="100">
 
+
+
+
                 <ListView
                     android:id="@android:id/list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="10"></ListView>
-
 
 
 
@@ -202,15 +207,14 @@
                         android:textColor="@color/textoMasOscuro"></Button>
 
                     <Button
+                        android:id="@+id/btnComentario"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="85"
                         android:layout_margin="2dp"
-                        android:id="@+id/btnComentario"
+                        android:layout_weight="85"
 
-                        fab:fabSize="mini"
-                        android:background="@drawable/dots1"
-                        ></Button>
+                        android:background="@drawable/comentarios"
+                        fab:fabSize="mini"></Button>
 
 
                 </LinearLayout>
@@ -223,7 +227,7 @@
         </LinearLayout>
 
     </RelativeLayout>
-
+<!--
     <androidx.recyclerview.widget.RecyclerView
 
         android:id="@+id/recyclerView"
@@ -238,3 +242,4 @@
 
 
 </androidx.drawerlayout.widget.DrawerLayout>
+-->

@@ -57,11 +57,16 @@ import mx.edu.transporte.chmd.adapter.RutaAdapter;
 import mx.edu.transporte.chmd.fragmentos.HomeFragment;
 import mx.edu.transporte.chmd.modelos.Ruta;
 import mx.edu.transporte.chmd.modelosDB.RutaDB;
+import mx.edu.transporte.chmd.networking.APIUtils;
+import mx.edu.transporte.chmd.networking.ITransporteCHMD;
 import mx.edu.transporte.chmd.servicios.NetworkChangeReceiver;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class PrincipalActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
     DrawerLayout drawerLayout;
+    ITransporteCHMD iTransporteCHMD;
     //Habilitación del NFC
     private NfcAdapter mAdapter;
     private PendingIntent mPendingIntent;
@@ -116,7 +121,7 @@ public class PrincipalActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_principal);
-
+        iTransporteCHMD = APIUtils.getTransporteService();
         Toolbar toolbar = findViewById(R.id.tool_bar);
         setSupportActionBar((Toolbar) findViewById(R.id.tool_bar));
 
@@ -136,8 +141,8 @@ public class PrincipalActivity extends AppCompatActivity
         estatus = sharedPreferences.getInt("estatus",0);
 
         id_usuario = sharedPreferences.getString("id_usuario","");
-
-        getRutaTransporte(id_usuario);
+        getRutaTransporte2(id_usuario);
+        //getRutaTransporte(id_usuario);
 
     }
 
@@ -225,6 +230,32 @@ public class PrincipalActivity extends AppCompatActivity
 
         return true;
 
+    }
+
+
+
+    public void getRutaTransporte2(String aux_id){
+        Call<List<Ruta>> rutaTransporte = iTransporteCHMD.getRutaTransporte(aux_id);
+        rutaTransporte.enqueue(new Callback<List<Ruta>>() {
+            @Override
+            public void onResponse(Call<List<Ruta>> call, retrofit2.Response<List<Ruta>> response) {
+                if(response.isSuccessful()){
+                    for(Ruta r : response.body()){
+                        String id_ruta_h = r.getIdRutaH();
+                        String nombre_ruta = r.getNombreRuta();
+                        String camion = r.getCamion();
+                        String turno = r.getTurno();
+                        String tipo_ruta = r.getTipoRuta();
+                        items.add(new Ruta(id_ruta_h,nombre_ruta,camion,turno,tipo_ruta));
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Ruta>> call, Throwable t) {
+
+            }
+        });
     }
 
 

@@ -753,12 +753,12 @@ ArrayList<Asistencia> items = new ArrayList<>();
                                 String ascenso_t = jsonObject.getString("ascenso_t");
                                 String descenso_t = jsonObject.getString("descenso_t");
                                 String salida = jsonObject.getString("salida");
+                                String ordenIn = jsonObject.getString("orden_in");
+                                String ordenOut = jsonObject.getString("orden_out");
                                 foto = foto.replace("C:\\IDCARDDESIGN\\CREDENCIALES\\alumnos\\","http://chmd.chmd.edu.mx:65083/CREDENCIALES/alumnos/");
                                 foto = foto.replace(" ","%20");
                                 Log.d("FOTO",foto);
-                                items.add(new Asistencia(tarjeta,id_alumno,nombreAlumno,domicilio,hora_manana,
-                                        horaRegreso,ascenso,descenso,domicilio_s,grupo,grado,nivel,foto,
-                                        false,false, ascenso_t,descenso_t,salida));
+
 
                                 //Contar cuantos amarillos (suben)
                                 if(turno.equalsIgnoreCase("1")){
