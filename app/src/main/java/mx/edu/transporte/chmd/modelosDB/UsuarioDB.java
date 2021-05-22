@@ -10,6 +10,8 @@ public class UsuarioDB extends Model {
     public String idAuxiliar;
     @Column(name="usuario")
     public String usuario;
+    @Column(name="adm_id")
+    public String adm_id;
     @Column(name="clave")
     public String clave;
 }

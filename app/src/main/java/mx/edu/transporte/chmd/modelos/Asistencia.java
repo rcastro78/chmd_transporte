@@ -29,7 +29,7 @@ public class Asistencia {
     private String ordenIn,ordenOut;
     boolean selected;
     boolean selectedNA;
-    boolean inasist;
+    boolean inasist, inasistTarde;
     public Asistencia(String idAlumno, String nombreAlumno, String domicilio, String hora_manana,
                       String horaRegreso, String ascenso, String descenso, String domicilio_s,
                       String grupo, String grado, String nivel, String foto, boolean selected, boolean selectedNA,
@@ -56,7 +56,8 @@ public class Asistencia {
     public Asistencia(String tarjeta,String idAlumno, String nombreAlumno, String domicilio, String hora_manana,
                       String horaRegreso, String ascenso, String descenso, String domicilio_s,
                       String grupo, String grado, String nivel, String foto, boolean selected, boolean selectedNA,
-                      String ascenso_t, String descenso_t, String salida, String ordenIn, String ordenOut, boolean inasist) {
+                      String ascenso_t, String descenso_t, String salida, String ordenIn, String ordenOut, boolean inasist,
+                      boolean inasistTarde) {
         this.idAlumno = idAlumno;
         this.tarjeta = tarjeta;
         this.nombreAlumno = nombreAlumno;
@@ -77,7 +78,7 @@ public class Asistencia {
         this.salida = salida;
         this.ordenIn = ordenIn;
         this.ordenOut = ordenOut;
-
+        this.inasistTarde = inasistTarde;
         this.inasist = inasist;
     }
 
@@ -247,5 +248,13 @@ public class Asistencia {
 
     public void setInasist(boolean inasist) {
         this.inasist = inasist;
+    }
+
+    public boolean isInasistTarde() {
+        return inasistTarde;
+    }
+
+    public void setInasistTarde(boolean inasistTarde) {
+        this.inasistTarde = inasistTarde;
     }
 }

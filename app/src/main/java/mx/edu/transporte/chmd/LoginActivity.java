@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.activeandroid.query.Delete;
+import com.activeandroid.query.Select;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
@@ -27,11 +28,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import mx.edu.transporte.chmd.adapter.RutaAdapter;
 import mx.edu.transporte.chmd.modelos.Ruta;
+import mx.edu.transporte.chmd.modelos.Usuario;
 import mx.edu.transporte.chmd.modelosDB.RutaDB;
+import mx.edu.transporte.chmd.modelosDB.UsuarioDB;
+import mx.edu.transporte.chmd.networking.APIUtils;
+import mx.edu.transporte.chmd.networking.ITransporteCHMD;
 import mx.edu.transporte.chmd.servicios.NetworkChangeReceiver;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class LoginActivity extends AppCompatActivity {
     static String BASE_URL;
@@ -45,6 +53,7 @@ public class LoginActivity extends AppCompatActivity {
     ArrayList<Ruta> items = new ArrayList<>();
     SharedPreferences sharedPreferences;
     NetworkChangeReceiver networkChangeReceiver = new NetworkChangeReceiver();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +63,6 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         email = txtUsuario.getText().toString();
         clave = txtClave.getText().toString();
-
         BASE_URL = this.getString(R.string.BASE_URL);
         RUTA = this.getString(R.string.PATH);
 
@@ -73,11 +81,15 @@ public class LoginActivity extends AppCompatActivity {
                 if(hayConexion()){
                     email = txtUsuario.getText().toString();
                     clave = txtClave.getText().toString();
-                    clave = txtClave.getText().toString();
                     if(email.length()>0 && clave.length()>0){
                         iniciarSesion(email,clave);
                     }else{
                         Toast.makeText(getApplicationContext(),"Ambos campos son obligatorios",Toast.LENGTH_LONG).show();
+                    }
+                }else{
+                    int valido = loginOffline(email,clave);
+                    if(valido>0){
+
                     }
                 }
             }
@@ -102,6 +114,7 @@ public class LoginActivity extends AppCompatActivity {
     public void onBackPressed(){
         super.onBackPressed();
         finish();
+        System.exit(0);
     }
 
     public boolean hayConexion() {
@@ -114,9 +127,32 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
+    public int loginOffline(String correo, String clave){
+        int v = 0;
 
-    public void iniciarSesion(String email, String clave){
+        List<UsuarioDB> list = new Select().from(UsuarioDB.class).where("usuario=? AND clave=?",correo,clave).execute();
+        try {
+            v = list.size();
 
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("adm_id",list.get(0).adm_id);
+            editor.putString("id_usuario",list.get(0).idAuxiliar);
+            editor.putString("correo",correo);
+            editor.putInt("cuentaValida",1);
+
+
+        }catch (Exception ex){
+            v = -1;
+        }
+        return v;
+
+    }
+
+
+
+    public void iniciarSesion(String email, final String clave){
+
+        new Delete().from(UsuarioDB.class).execute();
 
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+RUTA+METODO_LOGIN+"?usuario="+email+"&clave="+clave,
                 new Response.Listener<JSONArray>() {
@@ -141,6 +177,15 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putString("id_usuario",id_usuario);
                                 editor.putString("correo",correo);
                                 editor.putInt("cuentaValida",1);
+
+
+                                UsuarioDB usuarioDB = new UsuarioDB();
+                                usuarioDB.idAuxiliar=id_usuario;
+                                usuarioDB.adm_id = adm_id;
+                                usuarioDB.usuario = correo;
+                                usuarioDB.clave = clave;
+                                usuarioDB.save();
+
 
                                 //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
                                 editor.apply();

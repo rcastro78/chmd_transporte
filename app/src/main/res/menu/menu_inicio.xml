@@ -7,4 +7,17 @@
         app:showAsAction="always"
         android:title="Back">
     </item>
+    <!--
+    <item
+        android:id="@+id/action_select_all"
+        android:icon="@drawable/todos"
+        app:showAsAction="always"
+        android:title="Todos">
+    </item>-->
+    <item
+        android:id="@+id/action_logout"
+        android:icon="@drawable/logout"
+        app:showAsAction="always"
+        android:title="Cerrar">
+    </item>
 </menu>

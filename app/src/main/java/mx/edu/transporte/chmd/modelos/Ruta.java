@@ -21,6 +21,16 @@ public class Ruta {
         this.tipo_ruta = tipo_ruta;
     }
 
+    public Ruta(String id_ruta_h, String nombre_ruta, String camion, String turno, String tipo_ruta,String estatus) {
+        this.id_ruta_h = id_ruta_h;
+        this.nombre_ruta = nombre_ruta;
+        this.camion = camion;
+        this.turno = turno;
+        this.tipo_ruta = tipo_ruta;
+        this.estatus = estatus;
+    }
+
+
     public String getIdRutaH() {
         return id_ruta_h;
     }

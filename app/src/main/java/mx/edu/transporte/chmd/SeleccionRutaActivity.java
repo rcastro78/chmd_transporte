@@ -3,6 +3,7 @@ package mx.edu.transporte.chmd;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -21,6 +22,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,17 +43,23 @@ import retrofit2.Callback;
 public class SeleccionRutaActivity extends AppCompatActivity {
     TextView lblRuta;
     ListView lstRuta;
+    int retornar=0;
+    FloatingActionButton fabLogout;
     static String BASE_URL;
     static String PATH;
     static String METODO_RUTA="getRutaTransporte.php";
     static String METODO_ESTADO_RUTA="getEstatusRuta.php";
     SharedPreferences sharedPreferences;
     String id_usuario;
-    int estatus;
+    int estatus,cuentaValida;
     ITransporteCHMD iTransporteCHMD;
     private ArrayList<Ruta> items = new ArrayList<>();
     NetworkChangeReceiver networkChangeReceiver = new NetworkChangeReceiver();
-
+    @Override
+    public void onBackPressed(){
+        super.onBackPressed();
+        finish();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,11 +68,62 @@ public class SeleccionRutaActivity extends AppCompatActivity {
         PATH = this.getString(R.string.PATH);
         sharedPreferences = this.getSharedPreferences(this.getString(R.string.SHARED_PREF), 0);
         estatus = sharedPreferences.getInt("estatus",0);
+        cuentaValida = sharedPreferences.getInt("cuentaValida",0);
+        retornar = sharedPreferences.getInt("retornar",0);
         iTransporteCHMD = APIUtils.getTransporteService();
         id_usuario = sharedPreferences.getString("id_usuario","");
         lblRuta = findViewById(R.id.lblRuta);
         lstRuta = findViewById(R.id.lstRuta);
+        fabLogout = findViewById(R.id.fabLogout);
 
+        if(retornar==1){
+            Intent intent = new Intent(SeleccionRutaActivity.this,InicioActivity.class);
+            startActivity(intent);
+        }
+
+        fabLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new android.app.AlertDialog.Builder(SeleccionRutaActivity.this)
+                        .setTitle("Transporte")
+                        .setMessage("¿Desea cerrar sesión?")
+
+                        .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("adm_id","0");
+                                editor.putString("id_usuario","0");
+                                editor.putString("correo","");
+                                editor.putInt("cuentaValida",0);
+                                editor.putInt("retornar",0);
+                                editor.apply();
+                                Intent intent = new Intent(SeleccionRutaActivity.this,LoginActivity.class);
+                                startActivity(intent);
+                                finish();
+
+
+                            }
+                        })
+
+                        .setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+
+
+                        .setIcon(R.drawable.logo2)
+                        .show();
+
+            }
+        });
+
+        if(cuentaValida==0)
+        {
+            System.exit(0);
+            finish();
+        }
         if(hayConexion())
             getRutaTransporte2(id_usuario);
         else
@@ -73,19 +132,49 @@ public class SeleccionRutaActivity extends AppCompatActivity {
         lstRuta.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 Ruta r = (Ruta)lstRuta.getItemAtPosition(position);
                 String idRuta = r.getIdRutaH();
-                String nomRuta = r.getNombreRuta();
-                String turno = r.getTurno();
-                String tipo_ruta = r.getTipoRuta();
-                String camion = r.getCamion();
-                String trn = "", truta = "", cmn;
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("nombreRuta",nomRuta);
-                editor.apply();
-                getEstatusRuta(id_usuario,idRuta,nomRuta,turno);
+                if(!idRuta.equalsIgnoreCase("0")) {
+                    String nomRuta = r.getNombreRuta();
+                    String turno = r.getTurno();
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("nombreRuta", nomRuta);
+                    editor.putInt("retornar",0);
+                    editor.apply();
+                    if(hayConexion())
+                        getEstatusRuta(id_usuario, idRuta, nomRuta, turno);
+                    else{
+                        Ruta r1 = obtenerRutas(idRuta);
+                        String nomRuta1 = r1.getNombreRuta();
+                        String turno1 = r1.getTurno();
+                        SharedPreferences.Editor editor1 = sharedPreferences.edit();
+                        editor1.putString("nombreRuta", nomRuta1);
+                        editor1.putInt("retornar",0);
+                        editor.apply();
+
+                        if(estatus<2) {
+                            Intent intent = new Intent(SeleccionRutaActivity.this, InicioActivity.class);
+                            intent.putExtra("idRuta", idRuta);
+                            intent.putExtra("estatus", estatus);
+                            intent.putExtra("nomRuta", nomRuta1);
+                            intent.putExtra("turno", turno1);
+
+                            SharedPreferences.Editor editor2 = sharedPreferences.edit();
+                            editor.putInt("estatus", estatus);
+
+                            editor.putInt("estatus", estatus);
+                            editor.putString("idRuta", idRuta);
+                            editor.putString("nomRuta", nomRuta1);
+                            editor.putString("turno", turno1);
+                            editor.apply();
+
+                            startActivity(intent);
+                        }
 
 
+                    }
+                }
             }
         });
     }
@@ -118,12 +207,12 @@ public class SeleccionRutaActivity extends AppCompatActivity {
                                 editor.putInt("estatus",estatus);
                                 editor.putString("idRuta",ruta_id);
                                 editor.putInt("estatus",estatus);
-                                editor.putString("idRuta",ruta_id);
                                 editor.putString("nomRuta",nomRuta);
                                 editor.putString("turno",turno);
                                 editor.apply();
 
                                 startActivity(intent);
+
                             }else{
                                 Toast.makeText(getApplicationContext(),"Esta ruta ya está cerrada",Toast.LENGTH_LONG).show();
                             }
@@ -135,21 +224,7 @@ public class SeleccionRutaActivity extends AppCompatActivity {
 
 
                         }
-                        //TODO: Cambiarlo cuando pase a prueba en MX
-                        // if (existe.equalsIgnoreCase("1")) {
-                        //llenado de datos
-                        //eliminar circulares y guardar las primeras 10 del registro
-                        //Borra toda la tabla
-                        /*new Delete().from(DBCircular.class).execute();
 
-                        for(int i=0; i<10; i++){
-                            DBCircular dbCircular = new DBCircular();
-                            dbCircular.idCircular = circulares.get(i).getIdCircular();
-                            dbCircular.estado = circulares.get(i).getEstado();
-                            dbCircular.nombre = circulares.get(i).getNombre();
-                            dbCircular.textoCircular = circulares.get(i).getTextoCircular();
-                            dbCircular.save();
-                        }*/
 
 
 
@@ -160,33 +235,32 @@ public class SeleccionRutaActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error)
             {
                 VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
+
 
             }
         });
 
-        // Adding request to request queue
+
         AppTransporte.getInstance().addToRequestQueue(req);
     }
 
 
-
+    int i=0;
     public void getRutaTransporte2(String aux_id){
+
         Call<List<Ruta>> rutaTransporte = iTransporteCHMD.getRutaTransporte(aux_id);
         rutaTransporte.enqueue(new Callback<List<Ruta>>() {
             @Override
             public void onResponse(Call<List<Ruta>> call, retrofit2.Response<List<Ruta>> response) {
                 if(response.isSuccessful()){
                     for(Ruta r : response.body()){
+
                         String id_ruta_h = r.getIdRutaH();
                         String nombre_ruta = r.getNombreRuta();
                         String camion = r.getCamion();
                         String turno = r.getTurno();
                         String tipo_ruta = r.getTipoRuta();
-
+                        String estatus = r.getEstatus();
                         String trn="",truta="",cmn="";
                         if (turno.equalsIgnoreCase("1")) {
                             trn = "M";
@@ -214,8 +288,12 @@ public class SeleccionRutaActivity extends AppCompatActivity {
 
                         String codigo = trn + truta + cmn;
 
-
-                        items.add(new Ruta(id_ruta_h,codigo+" "+nombre_ruta,camion,turno,tipo_ruta));
+                        if(Integer.parseInt(estatus)<2)
+                            items.add(new Ruta(id_ruta_h,codigo+" "+nombre_ruta,camion,turno,tipo_ruta));
+                        else
+                        if(i==0)
+                                items.add(new Ruta("0","No hay rutas disponibles","0","0","-1"));
+                        i++;
                     }
 
                     RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
@@ -236,6 +314,10 @@ public class SeleccionRutaActivity extends AppCompatActivity {
 
 
 
+                }else{
+                    items.add(new Ruta("0","No hay rutas disponibles","0","0","-1"));
+                    RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
+                    lstRuta.setAdapter(adapter);
                 }
             }
 
@@ -244,122 +326,6 @@ public class SeleccionRutaActivity extends AppCompatActivity {
 
             }
         });
-    }
-
-
-
-    public void getRutaTransporte(String aux_id){
-
-
-        JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_RUTA+"?aux_id="+aux_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-
-
-
-                        if(response.length()<=0){
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
-                            editor.commit();
-                        }
-
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                String id_ruta_h = jsonObject.getString("id_ruta_h");
-                                String nombre_ruta = jsonObject.getString("nombre_ruta");
-                                String camion = jsonObject.getString("camion");
-                                String turno = jsonObject.getString("turno");
-                                String tipo_ruta = jsonObject.getString("tipo_ruta");
-                                String trn="",truta="",cmn="";
-                                if (turno.equalsIgnoreCase("1")) {
-                                    trn = "M";
-                                }
-                                if (turno.equalsIgnoreCase("2")) {
-                                    trn = "T";
-                                }
-                                if (tipo_ruta.equalsIgnoreCase("1")) {
-                                    truta = "G";
-                                }
-                                if (tipo_ruta.equalsIgnoreCase("2")) {
-                                    truta = "K";
-                                }
-                                if (tipo_ruta.equalsIgnoreCase("3")) {
-                                    truta = "T";
-                                }
-                                if (tipo_ruta.equalsIgnoreCase("4")) {
-                                    truta = "R";
-                                }
-                                if (Integer.parseInt(camion) < 10) {
-                                    cmn = "0" + camion;
-                                } else {
-                                    cmn = camion;
-                                }
-
-                                String codigo = trn + truta + cmn;
-
-                                items.add(new Ruta(id_ruta_h,codigo+" "+nombre_ruta,camion,turno,tipo_ruta));
-                            }
-                            RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
-                            lstRuta.setAdapter(adapter);
-
-                            //Borrar tabla de rutas
-                            new Delete().from(RutaDB.class).execute();
-                            //Llenar tabla de rutas
-                            for(int j=0; j<items.size(); j++){
-                                RutaDB rutaDB = new RutaDB();
-                                rutaDB.idRuta = items.get(j).getIdRutaH();
-                                rutaDB.nombreRuta = items.get(j).getNombreRuta();
-                                rutaDB.camion = items.get(j).getCamion();
-                                rutaDB.turno = items.get(j).getTurno();
-                                rutaDB.tipo_ruta = items.get(j).getTipoRuta();
-                                rutaDB.save();
-                            }
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-
-
-                        }
-                        //TODO: Cambiarlo cuando pase a prueba en MX
-                        // if (existe.equalsIgnoreCase("1")) {
-                        //llenado de datos
-                        //eliminar circulares y guardar las primeras 10 del registro
-                        //Borra toda la tabla
-                        /*new Delete().from(DBCircular.class).execute();
-
-                        for(int i=0; i<10; i++){
-                            DBCircular dbCircular = new DBCircular();
-                            dbCircular.idCircular = circulares.get(i).getIdCircular();
-                            dbCircular.estado = circulares.get(i).getEstado();
-                            dbCircular.nombre = circulares.get(i).getNombre();
-                            dbCircular.textoCircular = circulares.get(i).getTextoCircular();
-                            dbCircular.save();
-                        }*/
-
-
-
-                    }
-                }, new Response.ErrorListener()
-        {
-            @Override
-            public void onErrorResponse(VolleyError error)
-            {
-                VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
-
-            }
-        });
-
-        // Adding request to request queue
-        AppTransporte.getInstance().addToRequestQueue(req);
     }
 
 
@@ -391,8 +357,29 @@ public class SeleccionRutaActivity extends AppCompatActivity {
         RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
         lstRuta.setAdapter(adapter);
 
+    }
+
+    public Ruta obtenerRutas(String id_ruta_h){
+        Ruta r = null;
+        ArrayList<RutaDB> dbRuta = new ArrayList<>();
+        List<RutaDB> list = new Select().from(RutaDB.class).where("idRuta=?",id_ruta_h).execute();
+        dbRuta.addAll(list);
+
+        for(int i=0; i<dbRuta.size(); i++){
+
+
+            String nombre_ruta = dbRuta.get(i).nombreRuta;
+            String camion = dbRuta.get(i).camion;
+            String turno = dbRuta.get(i).turno;
+            String tipo_ruta = dbRuta.get(i).tipo_ruta;
+            r = new Ruta(id_ruta_h,nombre_ruta,camion,turno,tipo_ruta);
+        }
+
+       return r;
 
     }
+
+
 
     protected void onStart(){
         super.onStart();

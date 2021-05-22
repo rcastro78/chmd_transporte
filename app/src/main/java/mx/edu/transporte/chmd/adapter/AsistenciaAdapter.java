@@ -134,10 +134,19 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
             holder.lblParada.setText("Parada: "+asistencia.getOrdenOut());
         }
 
-       if(!asistencia.isInasist())
-            holder.btnInasistencia.setVisibility(View.GONE);
-        else
-            holder.btnInasistencia.setVisibility(View.VISIBLE);
+       if(turno.equalsIgnoreCase("1")) {
+           if (!asistencia.isInasist())
+               holder.btnInasistencia.setVisibility(View.GONE);
+           else
+               holder.btnInasistencia.setVisibility(View.VISIBLE);
+       }
+
+        if(turno.equalsIgnoreCase("2")) {
+            //if (!asistencia.isInasistTarde())
+                holder.btnInasistencia.setVisibility(View.GONE);
+            //else
+            //    holder.btnInasistencia.setVisibility(View.VISIBLE);
+        }
 
         holder.btnInasistencia.setOnClickListener(this);
 
@@ -182,6 +191,7 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
                 holder.imgFotoEstudiante.clearColorFilter();
             }
             //Inasistencias
+            //Rosados
             if(asistencia.getAscenso_t().equalsIgnoreCase("2") &&
                     asistencia.getDescenso_t().equalsIgnoreCase("2")) {
                 holder.llPic.setBackgroundColor(Color.parseColor("#ffe5e8"));
@@ -269,7 +279,7 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
                 }
             }else{
                 //Tarde
-                if (asistencia.getAscenso_t().equalsIgnoreCase("1") &&
+                if ((asistencia.getAscenso_t().equalsIgnoreCase("0") || asistencia.getAscenso_t().equalsIgnoreCase("1")) &&
                         asistencia.getDescenso_t().equalsIgnoreCase("0")){
                     //Mostrar diálogo
 

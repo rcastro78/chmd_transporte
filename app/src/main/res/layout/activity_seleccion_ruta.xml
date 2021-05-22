@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fff">
@@ -9,7 +10,7 @@
         layout="@layout/tool_bar"></include>
     <TextView android:layout_width="match_parent"
         android:layout_height="36dp"
-
+        android:layout_below="@id/tool_bar"
         android:id="@+id/lblRuta"
         android:text="Selecciona la ruta"
         android:textSize="24dp"
@@ -18,5 +19,27 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/lstRuta"></ListView>
-</LinearLayout>
+        android:layout_below="@id/lblRuta"
+        android:id="@+id/lstRuta">
+
+
+
+    </ListView>
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabLogout"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="64dp"
+        android:backgroundTint="@color/textoClaro"
+        android:scaleType="center"
+        android:src="@drawable/logout"
+        fab:elevation="4dp"
+        fab:fabCustomSize="48dp">
+
+    </com.google.android.material.floatingactionbutton.FloatingActionButton>
+</RelativeLayout>

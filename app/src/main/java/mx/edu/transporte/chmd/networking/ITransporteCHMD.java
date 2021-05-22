@@ -4,6 +4,7 @@ import java.util.List;
 
 import mx.edu.transporte.chmd.modelos.Asistencia;
 import mx.edu.transporte.chmd.modelos.Ruta;
+import mx.edu.transporte.chmd.modelos.Usuario;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -15,6 +16,9 @@ public interface ITransporteCHMD {
     //@FormUrlEncoded
     @GET("getRutaTransporte.php")
     Call<List<Ruta>> getRutaTransporte(@Query("aux_id") String aux_id);
+
+    @GET("validarSesion.php")
+    Call<List<Usuario>> iniciarSesion(@Query("usuario") String email,@Query("clave") String clave);
 
     //Cerrar ruta
     @FormUrlEncoded
