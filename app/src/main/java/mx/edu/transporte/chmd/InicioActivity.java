@@ -528,8 +528,9 @@ public class InicioActivity extends AppCompatActivity {
                 registraAscensoDB(idRuta,asistencia.getIdAlumno());
                 getAsistenciaDB(idRuta);
             }else{
-                items.clear();
+                //items.clear();
                 registraAscenso(asistencia.getIdAlumno(), idRuta,asistencia.getNombreAlumno());
+
             }
          }
 
@@ -2281,9 +2282,14 @@ public class InicioActivity extends AppCompatActivity {
         //mTextView.setText('\n' + sb.toString());
 
         int counter=0;
-        for(Asistencia asistencia : items){
 
-            if(asistencia.getTarjeta().equals(hexadecimal)){
+       for(Asistencia asistencia:items){
+
+           //Para pruebas de lectura
+            /*if (asistencia.getTarjeta().equalsIgnoreCase("25B70421")) {
+                hexadecimal = "25B70421";
+            }*/
+            if (asistencia.getTarjeta().equals(hexadecimal)) {
                 generadorTono.startTone(ToneGenerator.TONE_CDMA_PIP, 500);
                 generadorTono.startTone(ToneGenerator.TONE_CDMA_ANSWER, 500);
                 //if (estatus == ASCENSO) {
@@ -2294,13 +2300,19 @@ public class InicioActivity extends AppCompatActivity {
                 if (turno.equalsIgnoreCase(TURNO_TAR)) {
                     trabajarTurnoTar(asistencia);
                 }
+
                 //}
-            }else{
-                if(counter==0)
-                    Toast.makeText(getApplicationContext(),"Esta tarjeta no existe en esta lista",Toast.LENGTH_LONG).show();
+            } else {
+                if (counter == 0)
+                    //DE8B7889
+                    Toast.makeText(getApplicationContext(), "Esta tarjeta no existe en esta lista: " + hexadecimal, Toast.LENGTH_LONG).show();
             }
             counter++;
+            notifyAdapter();
+            lstAlumnos.invalidate();
         }
+
+
 
 
 
