@@ -26,13 +26,24 @@ import mx.edu.transporte.chmd.AppTransporte;
 import mx.edu.transporte.chmd.InicioActivity;
 import mx.edu.transporte.chmd.R;
 import mx.edu.transporte.chmd.modelosDB.AlumnoDB;
-
+//*****
+//*****
+//Servicio de Sincronización de base de datos hacia el server
+//de los datos recolectados si la app registró subidas/bajadas sin conexión
+//a internet.
+//*****
+//******
 public class SincronizacionService extends Service {
     private static String TURNO_MAN="1",TURNO_TAR="2";
     static String METODO_ALUMNO_ASISTE="asistenciaAlumno.php";
     static String METODO_ALUMNO_SUBE_TARDE="asistenciaAlumnoTarde.php";
     static String METODO_ALUMNO_NO_ASISTE="noAsistenciaAlumno.php";
     static String METODO_ALUMNO_NO_ASISTE_TARDE="noAsistenciaAlumnoTarde.php";
+
+    static String METODO_ALUMNO_REINICIA="reiniciaAsistenciaAlumno.php";
+    static String METODO_ALUMNO_REINICIA_TARDE="reiniciaAsistenciaAlumnoTarde.php";
+
+
     //Descensos
     static String METODO_ALUMNO_DESC="descensoAlumno.php";
     static String METODO_ALUMNO_DESC_TARDE="descensoAlumnoTarde.php";
@@ -55,6 +66,24 @@ public class SincronizacionService extends Service {
         context = this;
         BASE_URL = this.getString(R.string.BASE_URL);
         PATH = this.getString(R.string.PATH);
+
+
+//Reinicio de asistencia en la mañana
+        List<AlumnoDB> alumnosReinicioMan = new Select().from(AlumnoDB.class)
+                .where("procesado=0 AND ascenso=0 AND descenso=0 AND ascenso_t=0 AND descenso_t=0")
+                .execute();
+        for (AlumnoDB alumno:alumnosReinicioMan) {
+         reiniciaAsistencia(alumno.id_alumno,alumno.id_ruta_h);
+        }
+
+        //Reinicio de asistencia en la tarde
+        List<AlumnoDB> alumnosReinicioTar = new Select().from(AlumnoDB.class)
+                .where("procesado=0 AND ascenso=1 AND descenso=1 AND ascenso_t=0 AND descenso_t=0")
+                .execute();
+        for (AlumnoDB alumno:alumnosReinicioTar) {
+            reiniciaAsistenciaTarde(alumno.id_alumno,alumno.id_ruta_h);
+        }
+
 
 
         //Alumnos subiendo en la mañana
@@ -89,6 +118,9 @@ public class SincronizacionService extends Service {
 
             }
         }
+
+
+
 
 
 
@@ -393,6 +425,64 @@ public class SincronizacionService extends Service {
         AppTransporte.getInstance().addToRequestQueue(req);
 
     }
+
+    //reinicios de ascenso/descenso
+    public void reiniciaAsistencia(String alumno_id, String ruta_id){
+        JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_ALUMNO_REINICIA+"?id_alumno="+alumno_id+"&id_ruta="+ruta_id,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+
+                        if(response.length()<=0){
+
+                        }
+
+                    }
+                }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error)
+            {
+                VolleyLog.d("ERROR", "Error: " + error.getMessage());
+
+
+            }
+        });
+
+        // Adding request to request queue
+        AppTransporte.getInstance().addToRequestQueue(req);
+
+    }
+    public void reiniciaAsistenciaTarde(String alumno_id, String ruta_id){
+        JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_ALUMNO_REINICIA_TARDE+"?id_alumno="+alumno_id+"&id_ruta="+ruta_id,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+
+                        if(response.length()<=0){
+
+                        }
+
+
+
+                    }
+                }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error)
+            {
+                VolleyLog.d("ERROR", "Error: " + error.getMessage());
+
+
+            }
+        });
+
+        // Adding request to request queue
+        AppTransporte.getInstance().addToRequestQueue(req);
+
+    }
+
+
 
     //Registrar los descensos
     public void registraDescenso(final String alumno_id, final String ruta_id, final String turno){

@@ -34,7 +34,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
             }
 
         }else{
-            Toast.makeText(context, "No hay red", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "No hay red -> Trabajando en modo offline", Toast.LENGTH_LONG).show();
             Intent sincroService = new Intent(context, SincronizacionService.class);
             context.stopService(sincroService);
         }
