@@ -105,6 +105,7 @@ ArrayList<Asistencia> items = new ArrayList<>();
     static String METODO_ALUMNO_ASISTE="asistenciaAlumno.php";
     static String METODO_ALUMNO_SUBE_TARDE="asistenciaAlumnoTarde.php";
     static String METODO_ALUMNO_DESC="descensoAlumno.php";
+    static String METODO_RUTA_DESC="descensoTodosMan.php";
     static String METODO_ALUMNO_DESC_TARDE="descensoAlumnoTarde.php";
     static String METODO_ALUMNO_NO_ASISTE="noAsistenciaAlumno.php";
     static String METODO_ALUMNO_NO_ASISTE_TARDE="noAsistenciaAlumnoTarde.php";

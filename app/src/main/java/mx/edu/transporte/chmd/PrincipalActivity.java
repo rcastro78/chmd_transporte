@@ -75,7 +75,7 @@ public class PrincipalActivity extends AppCompatActivity
     private int mCount = 0;
     NfcAdapter mNfcAdapter;
     String hexadecimal,hexadecimalInv;
-
+    boolean isChecked;
 
     static String BASE_URL;
     static String PATH;
@@ -133,7 +133,7 @@ public class PrincipalActivity extends AppCompatActivity
 
         NavigationView navigationView = findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
-
+        isChecked = sharedPreferences.getBoolean("habilitarNFC",true);
 
         BASE_URL = this.getString(R.string.BASE_URL);
         PATH = this.getString(R.string.PATH);
@@ -557,59 +557,61 @@ public class PrincipalActivity extends AppCompatActivity
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d("onNewIntent", "1");
+        if(isChecked){
+            if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
+                Log.d("onNewIntent", "2");
 
-        if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
-            Log.d("onNewIntent", "2");
+                //if(getIntent().hasExtra(NfcAdapter.EXTRA_TAG)){
 
-            //if(getIntent().hasExtra(NfcAdapter.EXTRA_TAG)){
+                Parcelable tagN = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+                if (tagN != null) {
+                    Log.d("MAIN", "Parcelable OK");
+                    NdefMessage[] msgs;
+                    byte[] empty = new byte[0];
+                    byte[] id = intent.getByteArrayExtra(NfcAdapter.EXTRA_ID);
+                    byte[] payload = dumpTagData(tagN).getBytes();
+                    NdefRecord record = new NdefRecord(NdefRecord.TNF_UNKNOWN, empty, id, payload);
+                    NdefMessage msg = new NdefMessage(new NdefRecord[] { record });
+                    msgs = new NdefMessage[] { msg };
 
-            Parcelable tagN = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            if (tagN != null) {
-                Log.d("MAIN", "Parcelable OK");
-                NdefMessage[] msgs;
-                byte[] empty = new byte[0];
-                byte[] id = intent.getByteArrayExtra(NfcAdapter.EXTRA_ID);
-                byte[] payload = dumpTagData(tagN).getBytes();
-                NdefRecord record = new NdefRecord(NdefRecord.TNF_UNKNOWN, empty, id, payload);
-                NdefMessage msg = new NdefMessage(new NdefRecord[] { record });
-                msgs = new NdefMessage[] { msg };
-
-                //Log.d(TAG, msgs[0].toString());
-
-
-            }
-            else {
-                Log.d("MAIN", "Parcelable NULL");
-            }
+                    //Log.d(TAG, msgs[0].toString());
 
 
-
-            Parcelable[] messages1 = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-            if (messages1 != null) {
-                Log.d("MAIN", "Found " + messages1.length + " NDEF messages");
-            }
-            else {
-                Log.d("MAIN", "Not EXTRA_NDEF_MESSAGES");
-            }
-
-            Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Ndef ndef = Ndef.get(tag);
-            if(ndef != null) {
-
-                Log.d("onNewIntent:", "NfcAdapter.EXTRA_TAG");
-
-                Parcelable[] messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-                if (messages != null) {
-                    Log.d("MAIN", "Found " + messages.length + " NDEF messages");
                 }
-            }
-            else {
-                Log.d("MAIN", "Write to an unformatted tag not implemented");
-            }
+                else {
+                    Log.d("MAIN", "Parcelable NULL");
+                }
 
 
-            //mTextView.setText( "NFC Tag\n" + ByteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_TAG)));
+
+                Parcelable[] messages1 = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+                if (messages1 != null) {
+                    Log.d("MAIN", "Found " + messages1.length + " NDEF messages");
+                }
+                else {
+                    Log.d("MAIN", "Not EXTRA_NDEF_MESSAGES");
+                }
+
+                Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+                Ndef ndef = Ndef.get(tag);
+                if(ndef != null) {
+
+                    Log.d("onNewIntent:", "NfcAdapter.EXTRA_TAG");
+
+                    Parcelable[] messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+                    if (messages != null) {
+                        Log.d("MAIN", "Found " + messages.length + " NDEF messages");
+                    }
+                }
+                else {
+                    Log.d("MAIN", "Write to an unformatted tag not implemented");
+                }
+
+
+                //mTextView.setText( "NFC Tag\n" + ByteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_TAG)));
+            }
         }
+
     }
     private String dumpTagData(Parcelable p) {
         StringBuilder sb = new StringBuilder();

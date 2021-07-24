@@ -87,7 +87,7 @@ public class HomeFragment extends Fragment {
     static int ASCENSO=0;
     static int DESCENSO=1;
     private static String TURNO_MAN="1",TURNO_TAR="2";
-
+    boolean isChecked;
 
 
     private void notifyAdapter()  {
@@ -106,6 +106,7 @@ public class HomeFragment extends Fragment {
         BASE_URL = this.getString(R.string.BASE_URL);
         PATH = this.getString(R.string.PATH);
         tf = Typeface.createFromAsset(getActivity().getAssets(),"fonts/GothamRoundedMedium_21022.ttf");
+        isChecked = sharedPreferences.getBoolean("habilitarNFC",true);
         sharedPreferences = getActivity().getSharedPreferences(this.getString(R.string.SHARED_PREF), 0);
         searchView = v.findViewById(R.id.searchView);
         lblRuta = v.findViewById(R.id.lblRuta);

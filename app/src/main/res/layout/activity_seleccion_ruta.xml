@@ -27,14 +27,16 @@
     </ListView>
 
 
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabLogout"
         android:layout_width="48dp"
         android:layout_height="48dp"
+
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="64dp"
+        android:layout_marginBottom="32dp"
         android:backgroundTint="@color/textoClaro"
         android:scaleType="center"
         android:src="@drawable/logout"
@@ -42,4 +44,6 @@
         fab:fabCustomSize="48dp">
 
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+
 </RelativeLayout>

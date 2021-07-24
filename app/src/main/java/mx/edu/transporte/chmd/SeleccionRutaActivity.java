@@ -44,7 +44,7 @@ public class SeleccionRutaActivity extends AppCompatActivity {
     TextView lblRuta;
     ListView lstRuta;
     int retornar=0;
-    FloatingActionButton fabLogout;
+    FloatingActionButton fabLogout,fabConfig;
     static String BASE_URL;
     static String PATH;
     static String METODO_RUTA="getRutaTransporte.php";
@@ -80,6 +80,9 @@ public class SeleccionRutaActivity extends AppCompatActivity {
             Intent intent = new Intent(SeleccionRutaActivity.this,InicioActivity.class);
             startActivity(intent);
         }
+
+
+
 
         fabLogout.setOnClickListener(new View.OnClickListener() {
             @Override

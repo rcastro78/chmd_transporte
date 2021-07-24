@@ -7,6 +7,14 @@
         app:showAsAction="always"
         android:title="Back">
     </item>
+
+    <item
+        android:id="@+id/action_bajar"
+        android:icon="@drawable/up_down"
+        app:showAsAction="always"
+        android:title="Back">
+    </item>
+
     <!--
     <item
         android:id="@+id/action_select_all"
