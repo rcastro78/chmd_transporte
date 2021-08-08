@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.GpsStatus;
@@ -24,29 +25,30 @@ import androidx.core.content.ContextCompat;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import mx.edu.transporte.chmd.R;
+import mx.edu.transporte.chmd.networking.APIUtils;
+import mx.edu.transporte.chmd.networking.ITransporteCHMD;
 import mx.edu.transporte.chmd.receiver.AlarmaReceiver;
 import mx.edu.transporte.chmd.utilidades.Tracker;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LocalizacionService extends Service implements GpsStatus.Listener{
     Context context;
     boolean gps_enabled = false;
     boolean network_enabled = false;
     private Timer timer = new Timer();
-    double lat,lng,latAnt,lngAnt;
+    double lat,lng;
     int _velocidad,_altitud;
-    private static final String BATT_ACTION="android.intent.action.BATTERY_CHANGED";
-    private String[] PERMISSIONS_LOCATION = {
-            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-            android.Manifest.permission.ACCESS_FINE_LOCATION
-    };
-    int grados;
-    int totalSatelites=0;
+    private static String METODO_LOCALIZAR="enviaRuta.php";
+    ITransporteCHMD iTransporteCHMD;
+    SharedPreferences sharedPreferences;
+
     LocationManager locationManager;
-    Tracker tracker;
+
     Location net_loc;
     int precision=60;
-    AlarmaReceiver alarma = new AlarmaReceiver();
-
 
     @Nullable
     @Override
@@ -100,6 +102,8 @@ public class LocalizacionService extends Service implements GpsStatus.Listener{
         super.onCreate();
         context = this;
         Tracker t = new Tracker(this);
+        iTransporteCHMD = APIUtils.getTransporteService();
+        sharedPreferences = this.getSharedPreferences(this.getString(R.string.SHARED_PREF), 0);
         lat = t.getLatitude();
         lng = t.getLongitude();
         if(lat!=0 && lng!=0)
@@ -132,10 +136,7 @@ public class LocalizacionService extends Service implements GpsStatus.Listener{
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                Tracker t = new Tracker(LocalizacionService.this);
-                lat = t.getLatitude();
-                lng = t.getLongitude();
-                Log.d("Geolocalizacion timer",""+lat+","+lng);
+
             }
         }, 0, precision * 1000);
 
@@ -170,7 +171,6 @@ public class LocalizacionService extends Service implements GpsStatus.Listener{
 
         private Location mLastLocation;
 
-
         @Override
         public void onLocationChanged(Location pCurrentLocation) {
             lat = pCurrentLocation.getLatitude();
@@ -200,6 +200,16 @@ public class LocalizacionService extends Service implements GpsStatus.Listener{
             //aquí se están obteniendo cada 5 segundos. 
             Log.i("Geolocalizacion lis", "Coordenadas (Changed): "+lat+","+lng+" moviendose a: "+v);
 
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("latitude",String.valueOf(lat));
+            editor.putString("longitude",String.valueOf(lng));
+            editor.apply();
+            String idRuta = sharedPreferences.getString("idRuta","");
+            String idAux = sharedPreferences.getString("id_usuario","");
+
+            enviarRecorrido(idRuta,idAux,String.valueOf(lat),String.valueOf(lng),"0");
+
             //velocidad = (int)(3.6*(distanceInMeters/precision));
 
 
@@ -227,6 +237,26 @@ public class LocalizacionService extends Service implements GpsStatus.Listener{
         public void onStatusChanged(String provider, int status, Bundle extras) {
             // TODO Auto-generated method stub
 
+        }
+
+
+        //Enviar el recorrido
+        public void enviarRecorrido(String idRuta,String idAux, String latitud,
+                                    String longitud, String emergencia){
+            iTransporteCHMD.enviarRuta(idRuta,idAux,latitud,longitud,emergencia)
+                    .enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            if(response.isSuccessful()){
+                                Log.d("RUTA",response.body());
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+
+                        }
+                    });
         }
 
     };

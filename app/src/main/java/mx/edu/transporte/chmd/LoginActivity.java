@@ -1,11 +1,14 @@
 package mx.edu.transporte.chmd;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -53,7 +56,7 @@ public class LoginActivity extends AppCompatActivity {
     ArrayList<Ruta> items = new ArrayList<>();
     SharedPreferences sharedPreferences;
     NetworkChangeReceiver networkChangeReceiver = new NetworkChangeReceiver();
-
+    private static final int REQUEST_FINE_ACCESS_PERMISSION = 201;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +70,24 @@ public class LoginActivity extends AppCompatActivity {
         RUTA = this.getString(R.string.PATH);
 
         sharedPreferences = this.getSharedPreferences(this.getString(R.string.SHARED_PREF), 0);
+
+        //Permiso
+        try {
+            if (ActivityCompat.checkSelfPermission( LoginActivity.this,android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission( LoginActivity.this, Manifest.permission.SEND_SMS ) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(LoginActivity.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.SEND_SMS},
+                        1);
+            } else {
+
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("GEO",e.getMessage());
+        }
+
         valida = sharedPreferences.getInt("cuentaValida",0);
         if(valida==1){
             Intent intent = new Intent(LoginActivity.this,SeleccionRutaActivity.class);

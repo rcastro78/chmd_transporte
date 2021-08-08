@@ -155,6 +155,7 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
                 .load(asistencia.getFoto()) // image url
                 .placeholder(R.drawable.usuario) // any placeholder to load at start
                 .error(R.drawable.usuario)  // any image in case of error
+                .circleCrop()
                 .into(holder.imgFotoEstudiante);
 
         if (turno.equalsIgnoreCase("1")) {

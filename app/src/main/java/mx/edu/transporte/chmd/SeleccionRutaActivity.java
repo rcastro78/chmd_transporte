@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -36,6 +37,7 @@ import mx.edu.transporte.chmd.modelos.Ruta;
 import mx.edu.transporte.chmd.modelosDB.RutaDB;
 import mx.edu.transporte.chmd.networking.APIUtils;
 import mx.edu.transporte.chmd.networking.ITransporteCHMD;
+import mx.edu.transporte.chmd.servicios.LocalizacionService;
 import mx.edu.transporte.chmd.servicios.NetworkChangeReceiver;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -136,13 +138,25 @@ public class SeleccionRutaActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+
+
+
                 Ruta r = (Ruta)lstRuta.getItemAtPosition(position);
                 String idRuta = r.getIdRutaH();
+
                 if(!idRuta.equalsIgnoreCase("0")) {
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
+                    }else{
+                        startService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
+                    }
+
                     String nomRuta = r.getNombreRuta();
                     String turno = r.getTurno();
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("nombreRuta", nomRuta);
+                    editor.putString("idRuta",idRuta);
                     editor.putInt("retornar",0);
                     editor.apply();
                     if(hayConexion())

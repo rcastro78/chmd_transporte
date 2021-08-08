@@ -2,6 +2,7 @@ package mx.edu.transporte.chmd.networking;
 
 import java.util.List;
 
+import kotlin.jvm.JvmMultifileClass;
 import mx.edu.transporte.chmd.modelos.Asistencia;
 import mx.edu.transporte.chmd.modelos.Ruta;
 import mx.edu.transporte.chmd.modelos.Usuario;
@@ -30,5 +31,14 @@ public interface ITransporteCHMD {
     @FormUrlEncoded
     @POST("cerrarRutaTarde2.php")
     Call<Ruta> cerrarRutaTarde(@Field("id_ruta") String id_ruta,@Field("estatus") String estatus);
+
+    //Postear recorrido
+    //0->no es emergencia
+    //1->es emergencia
+    @FormUrlEncoded
+    @POST("enviaRuta.php")
+    Call<String> enviarRuta(@Field("id_ruta") String idRuta, @Field("aux_id") String aux_id,
+                            @Field("latitud") String latitud, @Field("longitud") String longitud,
+                            @Field("es_emergencia") String emergencia);
 
 }

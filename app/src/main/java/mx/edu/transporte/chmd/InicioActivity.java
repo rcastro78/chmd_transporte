@@ -36,8 +36,10 @@ import android.nfc.tech.NfcA;
 import android.nfc.tech.NfcB;
 import android.nfc.tech.NfcF;
 import android.nfc.tech.NfcV;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -82,6 +84,7 @@ import mx.edu.transporte.chmd.modelosDB.RutaDB;
 import mx.edu.transporte.chmd.networking.APIUtils;
 import mx.edu.transporte.chmd.networking.ITransporteCHMD;
 import mx.edu.transporte.chmd.receiver.NetworkChangeReceiver;
+import mx.edu.transporte.chmd.servicios.LocalizacionService;
 import retrofit2.Call;
 import retrofit2.Callback;
 
@@ -98,7 +101,7 @@ public class InicioActivity extends AppCompatActivity {
     TextView lblTotalInasist,lblTotales,lblAscDesc,lblInasist,lblAlumno,lblDatos;
     public static ListView lstAlumnos;
     String rsp,hexadecimal;
-    FloatingActionButton btnComentario;
+    FloatingActionButton btnComentario,fabAyuda;
     boolean todosSubidos;
     Button btnCerrarRegistro;
     int totalAscensos = 0;
@@ -208,6 +211,7 @@ public class InicioActivity extends AppCompatActivity {
         lblDatos = findViewById(R.id.lblDatos);
         lstAlumnos = findViewById(android.R.id.list);
         btnComentario = findViewById(R.id.fabComentario);
+        fabAyuda = findViewById(R.id.fabAyuda);
         btnCerrarRegistro = findViewById(R.id.btnCerrarRegistro);
         lblRuta.setTypeface(tf);
         lblAscDesc.setTypeface(tf);
@@ -218,6 +222,40 @@ public class InicioActivity extends AppCompatActivity {
         lblDatos.setTypeface(tf);
         lblAlumno.setTypeface(tf);
         estatus = sharedPreferences.getInt("estatus",-1);
+
+        fabAyuda.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                new AlertDialog.Builder(InicioActivity.this)
+                        .setTitle("CHMD - Transporte")
+                        .setMessage(msjRuta+lblRuta.getText().toString()+"?")
+
+                        .setPositiveButton("Enviar", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                String latitude = sharedPreferences.getString("latitude","0");
+                                String longitude = sharedPreferences.getString("longitude","0");
+                                String nombreRuta = sharedPreferences.getString("nombreRuta","");
+                                enviarMensajeSMS("+50371276577","Tenemos un problema en la ruta " + nombreRuta + ", estamos en:  http://maps.google.com/?q="+latitude+","+longitude);
+
+                            }
+                        })
+
+                        .setNegativeButton("Cancelar", null)
+                        .setIcon(R.mipmap.ic_launcher)
+                        .show();
+
+
+
+                //Toast.makeText(getApplicationContext(),"Aún no implementado: enviar ubicación por alguna emergencia via SMS",Toast.LENGTH_LONG).show()
+
+//
+
+
+            }
+        });
+
         btnComentario.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -334,6 +372,16 @@ public class InicioActivity extends AppCompatActivity {
                                             editor.putInt("estatus", 2);
                                             editor.putInt("retornar",0);
                                             editor.apply();
+
+                                            //Finalizar el service
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
+                                            }else{
+                                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
+                                            }
+
+
+
                                             Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
                                             startActivity(intent);
                                             finish();
@@ -2213,6 +2261,14 @@ public class InicioActivity extends AppCompatActivity {
                             editor.putString("correo","");
                             editor.putInt("cuentaValida",0);
                             editor.apply();
+                            //Finalizar el service
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
+                            }else{
+                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
+                            }
+
+
                             Intent intent = new Intent(InicioActivity.this,LoginActivity.class);
                             startActivity(intent);
                             finish();
@@ -2547,5 +2603,18 @@ public class InicioActivity extends AppCompatActivity {
         }
     }
 
+
+    public void enviarMensajeSMS(String phoneNo, String msg) {
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(phoneNo, null, msg, null, null);
+            Toast.makeText(getApplicationContext(), "Se envió el mensaje",
+                    Toast.LENGTH_LONG).show();
+        } catch (Exception ex) {
+            Toast.makeText(getApplicationContext(),ex.getMessage().toString(),
+                    Toast.LENGTH_LONG).show();
+            ex.printStackTrace();
+        }
+    }
 
 }

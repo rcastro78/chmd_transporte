@@ -280,7 +280,24 @@
         android:scaleType="center"
         android:src="@android:drawable/sym_action_chat"
         fab:elevation="4dp"
+        fab:fabCustomSize="48dp"/>
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAyuda"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="120dp"
+        android:backgroundTint="#fff"
+        android:scaleType="center"
+        android:src="@drawable/sos"
+        fab:elevation="4dp"
+        fab:fabSize="auto"
         fab:fabCustomSize="48dp">
+
 
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
     </RelativeLayout>
