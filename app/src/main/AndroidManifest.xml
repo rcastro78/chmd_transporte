@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.SEND_SMS"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <uses-feature
         android:name="android.hardware.nfc"
@@ -24,6 +24,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".InicioActivity"
+            android:launchMode="singleInstance"
             />
         <activity android:name=".PrincipalActivity"  android:launchMode="singleInstance"/>
         <activity android:name=".SeleccionRutaActivity"  android:launchMode="singleInstance"/>
@@ -69,8 +70,9 @@
         <service
             android:name=".servicios.SincronizacionService"
             android:enabled="true"
+            android:exported="true"
             android:launchMode="singleTop" />
-        <receiver android:name=".receiver.NetworkChangeReceiver">
+        <receiver android:name=".servicios.NetworkChangeReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>

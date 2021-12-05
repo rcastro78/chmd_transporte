@@ -23,7 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -142,10 +142,10 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
        }
 
         if(turno.equalsIgnoreCase("2")) {
-            //if (!asistencia.isInasistTarde())
+            if (!asistencia.isInasistTarde())
                 holder.btnInasistencia.setVisibility(View.GONE);
-            //else
-            //    holder.btnInasistencia.setVisibility(View.VISIBLE);
+            else
+               holder.btnInasistencia.setVisibility(View.VISIBLE);
         }
 
         holder.btnInasistencia.setOnClickListener(this);
@@ -333,7 +333,6 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
                 }
             }
 
-            //Toast.makeText(activity,asistencia.getNombreAlumno()+" será marcado como inasistente",Toast.LENGTH_LONG).show();
         }
 
 /*
@@ -552,8 +551,6 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
 
                         }catch (JSONException e)
                         {
-                            e.printStackTrace();
-                            //Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -653,8 +650,6 @@ public AsistenciaAdapter(Activity activity, ArrayList<Asistencia> items, String 
 
                         }catch (JSONException e)
                         {
-                            e.printStackTrace();
-                            //Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 

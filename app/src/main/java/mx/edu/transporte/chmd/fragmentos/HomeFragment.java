@@ -10,6 +10,7 @@ import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -127,8 +128,7 @@ public class HomeFragment extends Fragment {
         //cerrarRuta(idRuta,0);
         turno = sharedPreferences.getString("turno","");
         estatus = sharedPreferences.getInt("estatus",0);
-        //Toast.makeText(getActivity().getApplicationContext(),""+estatus,Toast.LENGTH_LONG).show();
-        if(turno.equals("2")){
+         if(turno.equals("2")){
             lblRuta.setText(sharedPreferences.getString("nomRuta","")+" (tarde)");
         }else{
             lblRuta.setText(sharedPreferences.getString("nomRuta","")+" (mañana)");
@@ -141,6 +141,30 @@ public class HomeFragment extends Fragment {
             else{
                 if(estatus<2){
                     getAsistencia(idRuta,METODO_ALUMNOS_MAT);
+
+                    Handler handler = new Handler();
+                    Runnable runTask = new Runnable() {
+                        @Override
+                        public void run() {
+                            getAsistencia(idRuta,METODO_ALUMNOS_MAT);
+                            Log.d("Handlers", "Called on main thread");
+                            handler.postDelayed(this,3000);
+                        }
+                    };
+                    handler.postDelayed(runTask,3000);
+// Start the initial runnable task by posting through the handler
+
+
+
+
+                    /*Handler handler = new Handler();
+                    handler.postDelayed(() -> {
+                        Toast.makeText(getActivity(), "Actualizando...", Toast.LENGTH_SHORT).show();
+                        getAsistencia(idRuta,METODO_ALUMNOS_MAT);
+
+                    }, 5000);*/
+
+
                 }else{
                     Toast.makeText(getActivity().getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
                 }
@@ -156,6 +180,16 @@ public class HomeFragment extends Fragment {
             else
             if(estatus<2){
                 getAsistencia(idRuta,METODO_ALUMNOS_TAR);
+
+
+                Handler handler = new Handler();
+                handler.postDelayed(() -> {
+                    Toast.makeText(getActivity(), "Actualizando...", Toast.LENGTH_SHORT).show();
+                    getAsistencia(idRuta,METODO_ALUMNOS_TAR);
+
+                }, 5000);
+
+
             }else{
                 Toast.makeText(getActivity().getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
             }
@@ -459,8 +493,7 @@ public class HomeFragment extends Fragment {
 
                             SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
-                            //editor.commit();
+
                         }
 
                         try {
@@ -574,7 +607,6 @@ public class HomeFragment extends Fragment {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            //Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -606,10 +638,7 @@ public class HomeFragment extends Fragment {
             public void onErrorResponse(VolleyError error)
             {
                 VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
+
 
             }
         });
@@ -739,7 +768,6 @@ public class HomeFragment extends Fragment {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -804,7 +832,6 @@ public class HomeFragment extends Fragment {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -867,7 +894,6 @@ public class HomeFragment extends Fragment {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -929,7 +955,6 @@ public class HomeFragment extends Fragment {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -992,7 +1017,6 @@ public class HomeFragment extends Fragment {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 

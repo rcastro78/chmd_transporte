@@ -1,13 +1,18 @@
 package mx.edu.transporte.chmd.servicios;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 import com.activeandroid.query.Select;
 import com.activeandroid.query.Update;
@@ -30,7 +35,7 @@ import mx.edu.transporte.chmd.modelosDB.AlumnoDB;
 //*****
 //Servicio de Sincronización de base de datos hacia el server
 //de los datos recolectados si la app registró subidas/bajadas sin conexión
-//a internet.
+//*****
 //*****
 //******
 public class SincronizacionService extends Service {
@@ -68,21 +73,47 @@ public class SincronizacionService extends Service {
         PATH = this.getString(R.string.PATH);
 
 
+        if (Build.VERSION.SDK_INT >= 26) {
+            String CHANNEL_ID = "my_channel_01";
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                    "cnl_transportes",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
+            Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle("")
+                    .setSmallIcon(android.R.drawable.stat_notify_sync)
+                    .setContentText("").build();
+
+            startForeground(1, notification);
+        }
+
+
 //Reinicio de asistencia en la mañana
         List<AlumnoDB> alumnosReinicioMan = new Select().from(AlumnoDB.class)
-                .where("procesado=0 AND ascenso=0 AND descenso=0 AND ascenso_t=0 AND descenso_t=0")
+                .where("procesado=0 AND ascenso=1 AND descenso=0 AND ascenso_t=0 AND descenso_t=0")
                 .execute();
+        if(alumnosReinicioMan.size()>0)
         for (AlumnoDB alumno:alumnosReinicioMan) {
-         reiniciaAsistencia(alumno.id_alumno,alumno.id_ruta_h);
+            Toast.makeText(context.getApplicationContext(), "alumno procesado: " + alumno.nombre, Toast.LENGTH_SHORT).show();
+
+            reiniciaAsistencia(alumno.id_alumno,alumno.id_ruta_h);
+            new Update(AlumnoDB.class).set("procesado=2").where("id_alumno=" + alumno.id_alumno + " AND id_ruta_h=" + alumno.id_ruta_h)
+                    .execute();
         }
 
         //Reinicio de asistencia en la tarde
         List<AlumnoDB> alumnosReinicioTar = new Select().from(AlumnoDB.class)
-                .where("procesado=0 AND ascenso=1 AND descenso=1 AND ascenso_t=0 AND descenso_t=0")
+                .where("ascenso_t=1 AND descenso_t=0")
                 .execute();
-        for (AlumnoDB alumno:alumnosReinicioTar) {
-            reiniciaAsistenciaTarde(alumno.id_alumno,alumno.id_ruta_h);
-        }
+        if(alumnosReinicioTar.size()>0)
+            for (AlumnoDB alumno:alumnosReinicioTar) {
+                Toast.makeText(context.getApplicationContext(), "alumno procesado: " + alumno.nombre, Toast.LENGTH_SHORT).show();
+                reiniciaAsistenciaTarde(alumno.id_alumno, alumno.id_ruta_h);
+                new Update(AlumnoDB.class).set("procesado=2").where("id_alumno=" + alumno.id_alumno + " AND id_ruta_h=" + alumno.id_ruta_h)
+                        .execute();
+            }
 
 
 
@@ -90,44 +121,48 @@ public class SincronizacionService extends Service {
         List<AlumnoDB> alumnosAscensoMan = new Select().from(AlumnoDB.class)
                 .where("procesado=1 AND ascenso=1 AND descenso=0 AND ascenso_t=0 AND descenso_t=0")
                 .execute();
-        for (AlumnoDB alumno:alumnosAscensoMan) {
 
-            if(Integer.parseInt(alumno.ascenso)>0){
-                //Aquí van los de la mañana
-                //Procesar los alumnos que han subido
-                if(Integer.parseInt(alumno.ascenso)<2)
-                    registraAscenso(alumno.id_alumno,alumno.id_ruta_h,TURNO_MAN);
-                 else
-                    registraInasistencia(alumno.id_alumno,alumno.id_ruta_h,TURNO_MAN);
-                //actualizar alumnos, poner procesado a -1
+        if (alumnosAscensoMan.size()>0) {
+            Toast.makeText(context.getApplicationContext(), "alumnos a sincronizar que subieron: " + alumnosAscensoMan.size(), Toast.LENGTH_SHORT).show();
 
-
-                //Procesar los alumnos que no asistieron
-           }
+            for (AlumnoDB alumno : alumnosAscensoMan) {
+                Toast.makeText(context.getApplicationContext(), "alumno procesado: " + alumno.nombre, Toast.LENGTH_SHORT).show();
+                if (Integer.parseInt(alumno.ascenso) > 0) {
+                    if (Integer.parseInt(alumno.ascenso) < 2) {
+                        registraAscenso(alumno.id_alumno, alumno.id_ruta_h, TURNO_MAN);
+                        new Update(AlumnoDB.class).set("procesado=2").where("id_alumno=" + alumno.id_alumno + " AND id_ruta_h=" + alumno.id_ruta_h)
+                                .execute();
+                    } else {
+                        registraInasistencia(alumno.id_alumno, alumno.id_ruta_h, TURNO_MAN);
+                    }
+                }
+            }
         }
+        //Alumnos bajando en la mañana
         List<AlumnoDB> alumnosDescensoMan = new Select().from(AlumnoDB.class)
                 .where("procesado=1 AND ascenso=1 AND descenso=1 AND ascenso_t=0 AND descenso_t=0")
                 .execute();
-        for (AlumnoDB alumno:alumnosDescensoMan) {
+        if(alumnosDescensoMan.size()>0){
+            Toast.makeText(context.getApplicationContext(), "alumnos a sincronizar que bajaron: " + alumnosDescensoMan.size(), Toast.LENGTH_SHORT).show();
 
-            if(Integer.parseInt(alumno.ascenso)>0){
-                //Aquí van los de la mañana
-                //Procesar los alumnos que han subido
-                if(Integer.parseInt(alumno.ascenso)<2)
-                    registraDescenso(alumno.id_alumno,alumno.id_ruta_h,TURNO_MAN);
+            for (AlumnoDB alumno:alumnosDescensoMan) {
+                Toast.makeText(context.getApplicationContext(), "alumno procesado: " + alumno.nombre, Toast.LENGTH_SHORT).show();
+                if(Integer.parseInt(alumno.ascenso)>0){
+                      if(Integer.parseInt(alumno.ascenso)<2)
+                        registraDescenso(alumno.id_alumno,alumno.id_ruta_h,TURNO_MAN);
+                    new Update(AlumnoDB.class).set("procesado=2").where("id_alumno=" + alumno.id_alumno + " AND id_ruta_h=" + alumno.id_ruta_h)
+                            .execute();
 
+                }
             }
         }
-
-
-
-
 
 
         //Alumnos subiendo en la tarde
         List<AlumnoDB> alumnosAscensoTar = new Select().from(AlumnoDB.class)
                 .where("procesado=1 AND ascenso_t=1 AND descenso_t=0")
                 .execute();
+        if(alumnosAscensoTar.size()>0)
         for (AlumnoDB alumno:alumnosAscensoTar) {
 
             if(Integer.parseInt(alumno.ascenso_t)>0){
@@ -135,7 +170,8 @@ public class SincronizacionService extends Service {
                 //Procesar los alumnos que han subido
                 if(Integer.parseInt(alumno.ascenso_t)<2)
                     registraAscensoTarde(alumno.id_alumno,alumno.id_ruta_h,TURNO_TAR);
-
+                new Update(AlumnoDB.class).set("procesado=2").where("id_alumno=" + alumno.id_alumno + " AND id_ruta_h=" + alumno.id_ruta_h)
+                        .execute();
                 //actualizar alumnos, poner procesado a -1
 
 
@@ -147,6 +183,7 @@ public class SincronizacionService extends Service {
         List<AlumnoDB> alumnosDescensoTar = new Select().from(AlumnoDB.class)
                 .where("procesado=1 AND ascenso_t=1 AND descenso_t=1")
                 .execute();
+        if(alumnosDescensoTar.size()>0)
         for (AlumnoDB alumno:alumnosDescensoTar) {
 
             if(Integer.parseInt(alumno.descenso_t)>0){
@@ -154,18 +191,13 @@ public class SincronizacionService extends Service {
                 //Procesar los alumnos que han subido
                 if(Integer.parseInt(alumno.descenso_t)<2)
                     registraDescensoTarde(alumno.id_alumno,alumno.id_ruta_h,TURNO_MAN);
+                new Update(AlumnoDB.class).set("procesado=2").where("id_alumno=" + alumno.id_alumno + " AND id_ruta_h=" + alumno.id_ruta_h)
+                        .execute();
 
             }
         }
 
 
-
-          /*if(Integer.parseInt(alumno.ascenso_t)>0){
-              if(Integer.parseInt(alumno.ascenso_t)<2)
-                  registraAscensoTarde(alumno.id_alumno,alumno.id_ruta_h,TURNO_TAR);
-              else
-                  registraInasistenciaTarde(alumno.id_alumno,alumno.id_ruta_h,TURNO_MAN);
-          }*/
 
 
 
@@ -185,7 +217,7 @@ public class SincronizacionService extends Service {
 
                         }else {
                             new Update(AlumnoDB.class)
-                                    .set("procesado=-1")
+                                    .set("procesado=2")
                                     .where("idAlumno=? AND id_ruta_h=?",alumno_id,ruta_id)
                                     .execute();
                         }
@@ -221,16 +253,7 @@ public class SincronizacionService extends Service {
 
 
                     }
-                }, new Response.ErrorListener()
-        {
-            @Override
-            public void onErrorResponse(VolleyError error)
-            {
-                VolleyLog.d("ERROR", "Error: " + error.getMessage());
-
-
-            }
-        });
+                }, error -> VolleyLog.d("ERROR", "Error: " + error.getMessage()));
 
         // Adding request to request queue
         AppTransporte.getInstance().addToRequestQueue(req);

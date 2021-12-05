@@ -574,7 +574,7 @@ ArrayList<Asistencia> items = new ArrayList<>();
         //Ascenso 1
         //Descenso 0
         new Update(AlumnoDB.class)
-                .set("ascenso=1, descenso=0")
+                .set("ascenso=1,procesado=1, descenso=0")
                 .where("id_ruta_h="+ruta_id+" AND id_alumno="+idAlumno)
                 .execute();
 
@@ -598,7 +598,7 @@ ArrayList<Asistencia> items = new ArrayList<>();
         //Ascensot 1
         //Descensot 0
         new Update(AlumnoDB.class)
-                .set("ascenso_t=1, descenso_t=0, salida=0")
+                .set("ascenso_t=1,procesado=1, descenso_t=0, salida=0")
                 .where("id_ruta_h_s="+ruta_id+" AND id_alumno="+idAlumno)
                 .execute();
 
@@ -725,8 +725,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
 
                             SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
-                            //editor.commit();
                         }
 
                         try {
@@ -844,7 +842,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -876,10 +873,7 @@ ArrayList<Asistencia> items = new ArrayList<>();
             public void onErrorResponse(VolleyError error)
             {
                 VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
+
 
             }
         });
@@ -901,7 +895,7 @@ ArrayList<Asistencia> items = new ArrayList<>();
 
                             SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
+
                             //editor.commit();
                         }
 
@@ -917,7 +911,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -952,7 +945,7 @@ ArrayList<Asistencia> items = new ArrayList<>();
 
                             SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
+
                             //editor.commit();
                         }
 
@@ -978,7 +971,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1013,8 +1005,7 @@ ArrayList<Asistencia> items = new ArrayList<>();
 
                             SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
-                            //editor.commit();
+                                                      //editor.commit();
                         }
 
                         try {
@@ -1033,7 +1024,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1103,7 +1093,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1176,7 +1165,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1241,7 +1229,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1306,7 +1293,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1389,7 +1375,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1454,7 +1439,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1517,7 +1501,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1579,7 +1562,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1642,7 +1624,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1705,7 +1686,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1760,12 +1740,10 @@ ArrayList<Asistencia> items = new ArrayList<>();
 
                     okhttp3.Response response = client.newCall(request).execute();
                     String finalResponse = response.body().string();
-                     Toast.makeText(getActivity(), finalResponse,Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
+                                   } catch (Exception e) {
                     e.printStackTrace();
                     Log.d("HOMEACTIVITY2",e.getMessage());
-                    //Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                 }
                 return  null;
             }
         }.execute();
@@ -1840,7 +1818,6 @@ ArrayList<Asistencia> items = new ArrayList<>();
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
             Log.d("onNewIntent", "2");
             //mTextView.setText( "NFC Tag\n" + bytesToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID)));
-            Toast.makeText(getApplicationContext(),"NFC Tag\n" + bytesToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID)),Toast.LENGTH_LONG).show();
             //if(getIntent().hasExtra(NfcAdapter.EXTRA_TAG)){
 
             Parcelable tagN = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);

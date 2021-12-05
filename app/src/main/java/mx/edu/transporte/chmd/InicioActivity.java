@@ -38,6 +38,7 @@ import android.nfc.tech.NfcF;
 import android.nfc.tech.NfcV;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -83,7 +84,6 @@ import mx.edu.transporte.chmd.modelosDB.AlumnoDB;
 import mx.edu.transporte.chmd.modelosDB.RutaDB;
 import mx.edu.transporte.chmd.networking.APIUtils;
 import mx.edu.transporte.chmd.networking.ITransporteCHMD;
-import mx.edu.transporte.chmd.receiver.NetworkChangeReceiver;
 import mx.edu.transporte.chmd.servicios.LocalizacionService;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -130,6 +130,8 @@ public class InicioActivity extends AppCompatActivity {
     static String METODO_ALUMNO_SUBE_TARDE="asistenciaAlumnoTarde.php";
     static String METODO_ALUMNO_DESC="descensoAlumno.php";
     static String METODO_RUTA_DESC="descensoTodosMan.php";
+    static String METODO_RUTA_DESC_TARDE="descensoTodosTar.php";
+
     static String METODO_RUTA_ASC="ascensoTodosTar.php";
     static String METODO_ALUMNO_DESC_TARDE="descensoAlumnoTarde.php";
     static String METODO_ALUMNO_REINICIA="reiniciaAsistenciaAlumno.php";
@@ -184,6 +186,8 @@ public class InicioActivity extends AppCompatActivity {
 
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -222,46 +226,36 @@ public class InicioActivity extends AppCompatActivity {
         lblDatos.setTypeface(tf);
         lblAlumno.setTypeface(tf);
         estatus = sharedPreferences.getInt("estatus",-1);
+        lblRuta.setText(sharedPreferences.getString("nRuta",""));
 
-        fabAyuda.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        Log.d("ESTATUS_RUTA",""+estatus);
 
-
-                new AlertDialog.Builder(InicioActivity.this)
-                        .setTitle("CHMD - Transporte")
-                        .setMessage(msjRuta+lblRuta.getText().toString()+"?")
-
-                        .setPositiveButton("Enviar", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                String latitude = sharedPreferences.getString("latitude","0");
-                                String longitude = sharedPreferences.getString("longitude","0");
-                                String nombreRuta = sharedPreferences.getString("nombreRuta","");
-                                enviarMensajeSMS("+50371276577","Tenemos un problema en la ruta " + nombreRuta + ", estamos en:  http://maps.google.com/?q="+latitude+","+longitude);
-
-                            }
-                        })
-
-                        .setNegativeButton("Cancelar", null)
-                        .setIcon(R.mipmap.ic_launcher)
-                        .show();
+        fabAyuda.setOnClickListener(v -> {
 
 
+            new AlertDialog.Builder(InicioActivity.this)
+                    .setTitle("CHMD - Transporte")
+                    .setMessage("¿Reportar problema en la ruta: "+lblRuta.getText().toString()+"?")
 
-                //Toast.makeText(getApplicationContext(),"Aún no implementado: enviar ubicación por alguna emergencia via SMS",Toast.LENGTH_LONG).show()
+                    .setPositiveButton("Enviar", (dialog, which) -> {
+                        String latitude = sharedPreferences.getString("latitude","0");
+                        String longitude = sharedPreferences.getString("longitude","0");
+                        String nombreRuta = sharedPreferences.getString("nombreRuta","");
+                        enviarMensajeSMS("+525552462600","Tenemos un problema en la ruta " + nombreRuta + ", estamos en:  http://maps.google.com/?q="+latitude+","+longitude);
 
-//
+                    })
+
+                    .setNegativeButton("Cancelar", null)
+                    .setIcon(R.mipmap.ic_launcher)
+                    .show();
 
 
-            }
+
+
+
         });
 
-        btnComentario.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getComentario(sharedPreferences.getString("idRuta",""));
-            }
-        });
+        btnComentario.setOnClickListener(v -> getComentario(sharedPreferences.getString("idRuta","")));
 
         viaMenu = sharedPreferences.getInt("viaMenu",0);
 
@@ -269,17 +263,37 @@ public class InicioActivity extends AppCompatActivity {
             idRuta = sharedPreferences.getString("idRuta","");
             turno = sharedPreferences.getString("turno","");
             final String nombreRuta = sharedPreferences.getString("nomRuta","");
-            lblRuta.setText(nombreRuta);
+            //lblRuta.setText(nombreRuta);
 
             if(hayConexion()){
                 if(turno.equals("1")){
-                //Toast.makeText(getApplicationContext(),"Aqui se llama",Toast.LENGTH_LONG).show();
                     if(estatus==0) {
                         items.clear();
                         getAsistencia(idRuta, METODO_ALUMNOS_MAT);
                     }
                     if(estatus==1)
                       getAlumnosAbordo(idRuta,METODO_ALUMNOS_MAT);
+
+                    Handler handler = new Handler();
+                    Runnable runTask = new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if(estatus==0) {
+                                items.clear();
+                                getAsistencia(idRuta, METODO_ALUMNOS_MAT);
+                            }
+                            if(estatus==1)
+                                getAlumnosAbordo(idRuta,METODO_ALUMNOS_MAT);
+
+                            Log.d("Handlers", "Called on main thread");
+                            handler.postDelayed(this,5*60*1000);
+                        }
+                    };
+                    handler.postDelayed(runTask,5*60*1000);
+
+
+
 
             }
             if(turno.equals("2")){
@@ -293,7 +307,9 @@ public class InicioActivity extends AppCompatActivity {
             }
             }else{
                 if(turno.equals("1")){
-                getAsistenciaDB(idRuta);
+                    idRuta = sharedPreferences.getString("idRuta","0");
+
+                    getAsistenciaDB(idRuta);
 
                 //getEstatusRuta(id_usuario,idRuta,nombreRuta,turno);
             }
@@ -307,14 +323,6 @@ public class InicioActivity extends AppCompatActivity {
 
 
         id_usuario = sharedPreferences.getString("id_usuario","");
-        /*if(hayConexion())
-            getRutaTransporte(aux_id);
-        else{
-            Toast.makeText(getApplicationContext(),"Sin conexión",Toast.LENGTH_LONG).show();
-            getRutaTransporteDB(aux_id);
-        }*/
-
-
 
 
         if(adapter!=null)
@@ -341,104 +349,107 @@ public class InicioActivity extends AppCompatActivity {
                         .setTitle("CHMD - Transporte")
                         .setMessage(msjRuta+lblRuta.getText().toString()+"?")
 
-                        .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if(turno.equalsIgnoreCase(TURNO_MAN)) {
-                                    if(estatus==0){
-                                        //Toast.makeText(getApplicationContext(),"Los niños se han subido y están listos para ir en el viaje hacia su casa",Toast.LENGTH_LONG).show();
-                                        if (totalAscensos + totalInasistencias == totalAlumnos && totalAlumnos>0) {
-                                            Ruta ruta = new Ruta(idRuta, "1");
-                                            cerrarRuta(ruta);
-                                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                                            editor.putInt("estatus", 1);
-                                            editor.putInt("retornar",1);
-                                            editor.apply();
-                                            //getAlumnosAbordo(idRuta, METODO_ALUMNOS_MAT);
-                                            Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
-                                            startActivity(intent);
-                                            finish();
+                        .setPositiveButton("Aceptar", (dialog, which) -> {
+                            if(turno.equalsIgnoreCase(TURNO_MAN)) {
+                                if(estatus==0){
+                                    if (totalAscensos + totalInasistencias == totalAlumnos && totalAlumnos>0) {
+                                        Ruta ruta = new Ruta(idRuta, "1");
 
-                                        }else{
-                                            Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
-                                        }
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putInt("estatus", 1);
+                                        editor.putInt("retornar",0);
+                                        editor.apply();
 
+                                        cerrarRuta(ruta);
+
+                                        //getAlumnosAbordo(idRuta, METODO_ALUMNOS_MAT);
+                                        Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
+                                        startActivity(intent);
+                                        //finish();
+
+
+                                    }else{
+                                        Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
                                     }
-
-                                    if(estatus==1){
-                                        if (totalAscensos == totalBajan) {
-                                            Ruta ruta = new Ruta(idRuta, "2");
-                                            cerrarRuta(ruta);
-                                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                                            editor.putInt("estatus", 2);
-                                            editor.putInt("retornar",0);
-                                            editor.apply();
-
-                                            //Finalizar el service
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
-                                            }else{
-                                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
-                                            }
-
-
-
-                                            Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
-                                            startActivity(intent);
-                                            finish();
-                                        } else {
-                                            Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
-                                        }
-                                    }
-
-
-
 
                                 }
 
+                                if(estatus==1){
+                                    if (totalAscensos == totalBajan) {
+                                        Ruta ruta = new Ruta(idRuta, "2");
+                                        cerrarRuta(ruta);
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putInt("estatus", 2);
+                                        editor.putInt("retornar",0);
+                                        editor.apply();
 
-                                if(turno.equalsIgnoreCase(TURNO_TAR))
-                                {
-                                    if(estatus==0){
-                                        //Toast.makeText(getApplicationContext(),"Los niños se han subido y están listos para ir en el viaje hacia su casa",Toast.LENGTH_LONG).show();
-                                        if (totalAscensos + totalInasistencias == totalAlumnos && totalAlumnos>0) {
-                                            Ruta ruta = new Ruta(idRuta, "1");
-                                            cerrarRuta(ruta);
-                                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                                            editor.putInt("estatus", 1);
-                                            editor.putInt("retornar",1);
-                                            editor.apply();
-                                            //getAlumnosAbordo(idRuta, METODO_ALUMNOS_TAR);
-                                            Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
-                                           startActivity(intent);
-
-                                            finish();
-
+                                        //Finalizar el service
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                            stopService(new Intent(InicioActivity.this, LocalizacionService.class));
                                         }else{
-                                            Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
+                                            stopService(new Intent(InicioActivity.this, LocalizacionService.class));
                                         }
 
-                                    }
 
-                                    if(estatus==1){
-                                        if (totalAscensos == totalBajan) {
-                                            Ruta ruta = new Ruta(idRuta, "2");
-                                            cerrarRuta(ruta);
-                                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                                            editor.putInt("estatus", 2);
-                                            editor.putInt("retornar",0);
-                                            editor.apply();
-                                            Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
-                                            startActivity(intent);
-                                            finish();
-                                        } else {
-                                            Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
-                                        }
+
+                                        Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
+                                        startActivity(intent);
+                                        //finish();
+
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
                                     }
                                 }
+
 
 
 
                             }
+
+
+                            if(turno.equalsIgnoreCase(TURNO_TAR))
+                            {
+                                if(estatus==0){
+                                    if (totalAscensos + totalInasistencias == totalAlumnos && totalAlumnos>0) {
+                                        Ruta ruta = new Ruta(idRuta, "1");
+                                        cerrarRuta(ruta);
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putInt("estatus", 1);
+                                        editor.putInt("retornar",1);
+                                        editor.apply();
+                                        //getAlumnosAbordo(idRuta, METODO_ALUMNOS_TAR);
+                                        Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
+                                       startActivity(intent);
+
+                                        //finish();
+
+
+                                    }else{
+                                        Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
+                                    }
+
+                                }
+
+                                if(estatus==1){
+                                    if (totalAscensos == totalBajan) {
+                                        Ruta ruta = new Ruta(idRuta, "2");
+                                        cerrarRuta(ruta);
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putInt("estatus", 2);
+                                        editor.putInt("retornar",0);
+                                        editor.apply();
+                                        Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
+                                        startActivity(intent);
+                                        //finish();
+
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), "No se puede cerrar todavía", Toast.LENGTH_LONG).show();
+                                    }
+                                }
+                            }
+
+
+
                         })
 
                         .setNegativeButton("Cancelar", null)
@@ -448,43 +459,42 @@ public class InicioActivity extends AppCompatActivity {
         });
 
 
-        lstAlumnos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        lstAlumnos.setOnItemClickListener((parent, view, position, id) -> {
 
-                final Asistencia asistencia = (Asistencia) lstAlumnos.getItemAtPosition(position);
-                posicion = position;
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt("posicion", posicion);
-                editor.apply();
-                Log.d("ESTATUS",""+estatus);
+            final Asistencia asistencia = (Asistencia) lstAlumnos.getItemAtPosition(position);
+            posicion = position;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("posicion", posicion);
+            editor.apply();
+            Log.d("ESTATUS",""+estatus);
 
 
 
-                if (estatus == 0) {
-                    //La ruta no está cerrada -> METODOS DE ASCENSOS
-                    if (turno.equalsIgnoreCase(TURNO_MAN)) {
-                        trabajarTurnoMan(asistencia);
-                    }
-                    if (turno.equalsIgnoreCase(TURNO_TAR)) {
-                        trabajarTurnoTar(asistencia);
-                    }
+            if (estatus == 0) {
+                //La ruta no está cerrada -> METODOS DE ASCENSOS
+                if (turno.equalsIgnoreCase(TURNO_MAN)) {
+                    trabajarTurnoMan(asistencia);
                 }
-
-
-                //Los niños bajan en el colegio o en su casa
-                if (estatus == 1) {
-                    //La ruta no está cerrada -> METODOS DE DESCENSOS
-                    if (turno.equalsIgnoreCase(TURNO_MAN)) {
-                       trabajarTurnoMan(asistencia);
-                    }
-                    if (turno.equalsIgnoreCase(TURNO_TAR)) {
-                        trabajarTurnoTar(asistencia);
-                    }
+                if (turno.equalsIgnoreCase(TURNO_TAR)) {
+                    trabajarTurnoTar(asistencia);
                 }
-
-
             }
+
+
+            //Los niños bajan en el colegio o en su casa
+            if (estatus == 1) {
+                //La ruta no está cerrada -> METODOS DE DESCENSOS
+                if (turno.equalsIgnoreCase(TURNO_MAN)) {
+                   trabajarTurnoMan(asistencia);
+                }
+                if (turno.equalsIgnoreCase(TURNO_TAR)) {
+                    trabajarTurnoTar(asistencia);
+                }
+            }
+
+            adapter.notifyDataSetChanged();
+
+
         });
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -529,6 +539,7 @@ public class InicioActivity extends AppCompatActivity {
                             }else{
                                 items.clear();
                                 registraAscenso(asistencia.getIdAlumno(),idRuta,asistencia.getNombreAlumno());
+                                registraAscensoDB(idRuta,asistencia.getIdAlumno());
                             }
 
                         }
@@ -656,6 +667,7 @@ public class InicioActivity extends AppCompatActivity {
                                 registraAscensoTardeDB(idRuta,asistencia.getIdAlumno());
                                 getAsistenciaDBTarde(idRuta);
                             }else{
+                                registraAscensoTardeDB(idRuta,asistencia.getIdAlumno());
                                 registraAscensoTarde(asistencia.getIdAlumno(), idRuta,asistencia.getNombreAlumno());
                             }
                         }
@@ -702,7 +714,7 @@ public class InicioActivity extends AppCompatActivity {
                 getAsistenciaDBTarde(idRuta);
             }else{
                 registraAscensoTarde(asistencia.getIdAlumno(), idRuta,asistencia.getNombreAlumno());
-
+                registraAscensoTardeDB(idRuta,asistencia.getIdAlumno());
             }
         }
 
@@ -724,6 +736,7 @@ public class InicioActivity extends AppCompatActivity {
                                 getAsistenciaDBTarde(idRuta);
                             }else{
                                 items.clear();
+                                reiniciaRegistroTardeDB(idRuta,asistencia.getIdAlumno());
                                 reiniciaAsistenciaTarde(asistencia.getIdAlumno(), idRuta);
                             }
                         }
@@ -753,6 +766,7 @@ public class InicioActivity extends AppCompatActivity {
                 getAsistenciaDBTarde(idRuta);
             }else {
                 items.clear();
+                registraAscensoTardeDB(idRuta, asistencia.getIdAlumno());
                 registraAscensoTarde(asistencia.getIdAlumno(), idRuta, asistencia.getNombreAlumno());
             }
         }
@@ -764,7 +778,7 @@ public class InicioActivity extends AppCompatActivity {
         totalInasistencias = 0;
         items.clear();
 
-        new Delete().from(AlumnoDB.class).where("id_ruta_h=?",idRuta).execute();
+        new Delete().from(AlumnoDB.class).where("id_ruta_h=? and procesado=0",idRuta).execute();
 
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+metodo+"?ruta_id="+ruta_id,
                 new Response.Listener<JSONArray>() {
@@ -867,7 +881,6 @@ public class InicioActivity extends AppCompatActivity {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -899,10 +912,7 @@ public class InicioActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error)
             {
                 VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
+
 
             }
         });
@@ -916,268 +926,261 @@ public class InicioActivity extends AppCompatActivity {
         totalInasistencias = 0;
         totalBajan = 0;
 
-
-        new Delete().from(AlumnoDB.class).where("id_ruta_h=?",idRuta).execute();
+        if(hayConexion())
+            new Delete().from(AlumnoDB.class).where("id_ruta_h=?",idRuta).execute();
 
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+metodo+"?ruta_id="+ruta_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
+                response -> {
 
 
-                        if(response.length()<=0){
+                    if(response.length()<=0){
 
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                        }
-                        int parada=1;
-                        try {
-                            items.clear();
-                            totalAscensos=0;
-                            totalInasistencias = 0;
-                            totalBajan = 0;
-                            for(int i=0; i<response.length(); i++){
-                                //new Delete().from(AlumnoDB.class).execute();
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
+                    }
+                    int parada=1;
+                    try {
+                        items.clear();
+                        totalAscensos=0;
+                        totalInasistencias = 0;
+                        totalBajan = 0;
+                        for(int i=0; i<response.length(); i++){
+                            //new Delete().from(AlumnoDB.class).execute();
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
 
 
 
-                                String tarjeta = "";
-                                if(jsonObject.getString("tarjeta")!=null){
-                                    tarjeta = jsonObject.getString("tarjeta");
+                            String tarjeta = "";
+                            if(jsonObject.getString("tarjeta")!=null){
+                                tarjeta = jsonObject.getString("tarjeta");
+                            }
+
+                            //Esto es para pruebas.
+                            /*if(jsonObject.getString("tarjeta").equalsIgnoreCase("87F94A62")){
+                                tarjeta="DE8B7889";
+                            }*/
+
+                            String id_alumno = jsonObject.getString("id_alumno");
+                            String nombreAlumno = jsonObject.getString("nombre");
+                            String domicilio = jsonObject.getString("domicilio");
+                            String hora_manana = jsonObject.getString("hora_manana");
+                            String horaRegreso = jsonObject.getString("hora_regreso");
+                            String ascenso = jsonObject.getString("ascenso");
+                            String descenso = jsonObject.getString("descenso");
+                            String domicilio_s = jsonObject.getString("domicilio_s");
+                            String grupo = jsonObject.getString("grupo");
+                            String grado = jsonObject.getString("grado");
+                            String nivel = jsonObject.getString("nivel");
+                            String foto = jsonObject.getString("foto");
+                            String ascenso_t = jsonObject.getString("ascenso_t");
+                            String descenso_t = jsonObject.getString("descenso_t");
+                            String salida = jsonObject.getString("salida");
+                            String ordenIn = jsonObject.getString("orden_in");
+                            String ordenOut = jsonObject.getString("orden_out");
+                            foto = foto.replace("C:\\IDCARDDESIGN\\CREDENCIALES\\alumnos\\","http://chmd.chmd.edu.mx:65083/CREDENCIALES/alumnos/");
+                            foto = foto.replace(" ","%20");
+                            Log.d("FOTO_AL",foto);
+
+
+                            if(estatus==0) {
+                                if (parada == 0) {
+                                    parada = 1;
                                 }
-
-                                //Esto es para pruebas.
-                                /*if(jsonObject.getString("tarjeta").equalsIgnoreCase("87F94A62")){
-                                    tarjeta="DE8B7889";
-                                }*/
-
-                                String id_alumno = jsonObject.getString("id_alumno");
-                                String nombreAlumno = jsonObject.getString("nombre");
-                                String domicilio = jsonObject.getString("domicilio");
-                                String hora_manana = jsonObject.getString("hora_manana");
-                                String horaRegreso = jsonObject.getString("hora_regreso");
-                                String ascenso = jsonObject.getString("ascenso");
-                                String descenso = jsonObject.getString("descenso");
-                                String domicilio_s = jsonObject.getString("domicilio_s");
-                                String grupo = jsonObject.getString("grupo");
-                                String grado = jsonObject.getString("grado");
-                                String nivel = jsonObject.getString("nivel");
-                                String foto = jsonObject.getString("foto");
-                                String ascenso_t = jsonObject.getString("ascenso_t");
-                                String descenso_t = jsonObject.getString("descenso_t");
-                                String salida = jsonObject.getString("salida");
-                                String ordenIn = jsonObject.getString("orden_in");
-                                String ordenOut = jsonObject.getString("orden_out");
-                                foto = foto.replace("C:\\IDCARDDESIGN\\CREDENCIALES\\alumnos\\","http://chmd.chmd.edu.mx:65083/CREDENCIALES/alumnos/");
-                                foto = foto.replace(" ","%20");
-                                Log.d("FOTO_AL",foto);
-
-
-                                if(estatus==0) {
-                                    if (parada == 0) {
-                                        parada = 1;
-                                    }
+                                items.add(new Asistencia(tarjeta, id_alumno, nombreAlumno, domicilio, hora_manana,
+                                        horaRegreso, ascenso, descenso, domicilio_s, grupo, grado, nivel, foto,
+                                        false, false, ascenso_t, descenso_t, salida, String.valueOf(parada), String.valueOf(parada), true,true));
+                            }
+                            if(estatus==1) {
+                                //No se debe ver el botón de inasitencia
+                                if (parada == 0) {
+                                    parada = 1;
+                                }
+                                if ((!ascenso.equalsIgnoreCase("2") && !descenso.equalsIgnoreCase("2"))
+                                || (!ascenso_t.equalsIgnoreCase("2") && !descenso_t.equalsIgnoreCase("2")))
                                     items.add(new Asistencia(tarjeta, id_alumno, nombreAlumno, domicilio, hora_manana,
                                             horaRegreso, ascenso, descenso, domicilio_s, grupo, grado, nivel, foto,
-                                            false, false, ascenso_t, descenso_t, salida, String.valueOf(parada), String.valueOf(parada), true,true));
-                                }
-                                if(estatus==1) {
-                                    //No se debe ver el botón de inasitencia
-                                    if (parada == 0) {
-                                        parada = 1;
-                                    }
-                                    if ((!ascenso.equalsIgnoreCase("2") && !descenso.equalsIgnoreCase("2"))
-                                    || (!ascenso_t.equalsIgnoreCase("2") && !descenso_t.equalsIgnoreCase("2")))
-                                        items.add(new Asistencia(tarjeta, id_alumno, nombreAlumno, domicilio, hora_manana,
-                                                horaRegreso, ascenso, descenso, domicilio_s, grupo, grado, nivel, foto,
-                                                false, false, ascenso_t, descenso_t, salida, String.valueOf(parada), String.valueOf(parada), false,false));
-                                }
+                                            false, false, ascenso_t, descenso_t, salida, String.valueOf(parada), String.valueOf(parada), false,false));
+                            }
 
 
 
 
 
-                                //Contar cuantos amarillos (suben)
-                                if(turno.equalsIgnoreCase("1")){
+                            //Contar cuantos amarillos (suben)
+                            if(turno.equalsIgnoreCase("1")){
 
 
-                                    if(i<response.length()-1) {
-                                        JSONObject jsonObject1 = (JSONObject) response
-                                                .get(i+1);
+                                if(i<response.length()-1) {
+                                    JSONObject jsonObject1 = (JSONObject) response
+                                            .get(i+1);
 
-                                        if (!jsonObject.getString("hora_manana")
-                                                .equalsIgnoreCase(jsonObject1.getString("hora_manana"))) {
-                                            parada++;
-                                        }
-
+                                    if (!jsonObject.getString("hora_manana")
+                                            .equalsIgnoreCase(jsonObject1.getString("hora_manana"))) {
+                                        parada++;
                                     }
 
-
-                                    if(ascenso.equalsIgnoreCase("1"))
-                                        totalAscensos++;
-
-                                    if(ascenso.equalsIgnoreCase("2") && descenso.equalsIgnoreCase("2"))
-                                        totalInasistencias++;
-
-                                    if(ascenso.equalsIgnoreCase("1") && descenso.equalsIgnoreCase("1"))
-                                        totalBajan++;
-
-
-
                                 }
-                                if(turno.equalsIgnoreCase("2")){
 
-                                    if(i<response.length()-1) {
-                                        JSONObject jsonObject1 = (JSONObject) response
-                                                .get(i+1);
 
-                                        if (!jsonObject.getString("hora_regreso")
-                                                .equalsIgnoreCase(jsonObject1.getString("hora_regreso"))) {
-                                            parada++;
-                                        }
+                                if(ascenso.equalsIgnoreCase("1"))
+                                    totalAscensos++;
 
+                                if(ascenso.equalsIgnoreCase("2") && descenso.equalsIgnoreCase("2"))
+                                    totalInasistencias++;
+
+                                if(ascenso.equalsIgnoreCase("1") && descenso.equalsIgnoreCase("1"))
+                                    totalBajan++;
+
+
+
+                            }
+                            if(turno.equalsIgnoreCase("2")){
+
+                                if(i<response.length()-1) {
+                                    JSONObject jsonObject1 = (JSONObject) response
+                                            .get(i+1);
+
+                                    if (!jsonObject.getString("hora_regreso")
+                                            .equalsIgnoreCase(jsonObject1.getString("hora_regreso"))) {
+                                        parada++;
                                     }
 
-
-                                    if(ascenso_t.equalsIgnoreCase("1"))
-                                        totalAscensos++;
-
-                                    if(ascenso_t.equalsIgnoreCase("2") && descenso_t.equalsIgnoreCase("2"))
-                                        totalInasistencias++;
-
-                                    if(ascenso_t.equalsIgnoreCase("1") && descenso_t.equalsIgnoreCase("1"))
-                                        totalBajan++;
-
                                 }
 
-                                //Contar cuantos rosados (no suben)
+
+                                if(ascenso_t.equalsIgnoreCase("1"))
+                                    totalAscensos++;
+
+                                if(ascenso_t.equalsIgnoreCase("2") && descenso_t.equalsIgnoreCase("2"))
+                                    totalInasistencias++;
+
+                                if(ascenso_t.equalsIgnoreCase("1") && descenso_t.equalsIgnoreCase("1"))
+                                    totalBajan++;
 
                             }
 
-                            totalAlumnos = items.size();
+                            //Contar cuantos rosados (no suben)
+
+                        }
+
+                        totalAlumnos = items.size();
+                        if(estatus==0) {
+                            lblTotales.setText(totalAscensos + "/" + totalAlumnos);
+                            lblTotalInasist.setText(String.valueOf(totalInasistencias));
+                        }
+                        if(estatus==1) {
+                            lblTotales.setText(totalBajan + "/" + totalAscensos);
+                            lblTotalInasist.setText("N/A");
+                        }
+
+
+                        if(estatus==1) {
+                            //Cuando van a bajar
+                            if (totalAscensos > totalBajan) {
+                                btnCerrarRegistro.setEnabled(false);
+                                btnCerrarRegistro.setBackgroundColor(Color.parseColor("#303030"));
+                                btnCerrarRegistro.setText("Todavía no puede cerrarse");
+                                btnCerrarRegistro.setTextColor(getResources().getColor(R.color.colorAccent));
+                            }else{
+                                btnCerrarRegistro.setEnabled(true);
+                                btnCerrarRegistro.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                btnCerrarRegistro.setText("Cerrar Registro");
+                                btnCerrarRegistro.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+                            }
+                        }
+
+
                             if(estatus==0) {
-                                lblTotales.setText(totalAscensos + "/" + totalAlumnos);
-                                lblTotalInasist.setText(String.valueOf(totalInasistencias));
-                            }
-                            if(estatus==1) {
-                                lblTotales.setText(totalBajan + "/" + totalAscensos);
-                                lblTotalInasist.setText("N/A");
-                            }
-
-
-                            if(estatus==1) {
-                                //Cuando van a bajar
-                                if (totalAscensos > totalBajan) {
+                                if (totalAscensos + totalInasistencias < totalAlumnos) {
+                                    ///todosSubidos = false;
                                     btnCerrarRegistro.setEnabled(false);
                                     btnCerrarRegistro.setBackgroundColor(Color.parseColor("#303030"));
                                     btnCerrarRegistro.setText("Todavía no puede cerrarse");
                                     btnCerrarRegistro.setTextColor(getResources().getColor(R.color.colorAccent));
-                                }else{
+                                } else {
+                                    ///todosSubidos = true;
                                     btnCerrarRegistro.setEnabled(true);
                                     btnCerrarRegistro.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+
                                     btnCerrarRegistro.setText("Cerrar Registro");
                                     btnCerrarRegistro.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+
+
                                 }
                             }
 
 
-                                if(estatus==0) {
-                                    if (totalAscensos + totalInasistencias < totalAlumnos) {
-                                        ///todosSubidos = false;
-                                        btnCerrarRegistro.setEnabled(false);
-                                        btnCerrarRegistro.setBackgroundColor(Color.parseColor("#303030"));
-                                        btnCerrarRegistro.setText("Todavía no puede cerrarse");
-                                        btnCerrarRegistro.setTextColor(getResources().getColor(R.color.colorAccent));
-                                    } else {
-                                        ///todosSubidos = true;
-                                        btnCerrarRegistro.setEnabled(true);
-                                        btnCerrarRegistro.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-
-                                        btnCerrarRegistro.setText("Cerrar Registro");
-                                        btnCerrarRegistro.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
-
-
-                                    }
-                                }
-
-
-                            //Esto sirve para ordenar un arreglo de objetos
-                            Collections.sort(items, new Comparator<Asistencia>() {
-                                @Override
-                                public int compare(Asistencia a1, Asistencia a2) {
-                                    return (a1.getAscenso()).compareTo(a2.getAscenso());
-                                }
-                            });
-
-                            adapter = new AsistenciaAdapter(InicioActivity.this,items,turno,idRuta);
-                            adapter.notifyDataSetChanged();
-                            lstAlumnos.setAdapter(adapter);
-                            if(sharedPreferences.getInt("posicion",0)>0){
-                                lstAlumnos.setSelection(posicion);
+                        //Esto sirve para ordenar un arreglo de objetos
+                        Collections.sort(items, new Comparator<Asistencia>() {
+                            @Override
+                            public int compare(Asistencia a1, Asistencia a2) {
+                                return (a1.getAscenso()).compareTo(a2.getAscenso());
                             }
-                            for(Asistencia asistencia : items){
-                                AlumnoDB alumnoDB = new AlumnoDB();
-                                alumnoDB.id_ruta_h = idRuta;
-                                alumnoDB.id_alumno = asistencia.getIdAlumno();
-                                alumnoDB.nombre = asistencia.getNombreAlumno();
-                                alumnoDB.domicilio = asistencia.getDomicilio();
-                                alumnoDB.hora_manana = asistencia.getHora_manana();
-                                alumnoDB.hora_regreso = asistencia.getHoraRegreso();
-                                alumnoDB.ascenso = asistencia.getAscenso();
-                                alumnoDB.domicilio_s = asistencia.getDomicilio_s();
-                                alumnoDB.grupo = asistencia.getGrupo();
-                                alumnoDB.grado = asistencia.getGrado();
-                                alumnoDB.nivel = asistencia.getNivel();
-                                alumnoDB.descenso = asistencia.getDescenso();
-                                alumnoDB.ascenso_t = asistencia.getAscenso_t();
-                                alumnoDB.descenso_t = asistencia.getDescenso_t();
-                                alumnoDB.procesado=0;
-                                Log.d("ALUMNOS",""+alumnoDB.save());
+                        });
 
-                            }
-
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                        adapter = new AsistenciaAdapter(InicioActivity.this,items,turno,idRuta);
+                        adapter.notifyDataSetChanged();
+                        lstAlumnos.setAdapter(adapter);
+                        if(sharedPreferences.getInt("posicion",0)>0){
+                            lstAlumnos.setSelection(posicion);
+                        }
+                        for(Asistencia asistencia : items){
+                            AlumnoDB alumnoDB = new AlumnoDB();
+                            alumnoDB.id_ruta_h = idRuta;
+                            alumnoDB.id_alumno = asistencia.getIdAlumno();
+                            alumnoDB.nombre = asistencia.getNombreAlumno();
+                            alumnoDB.domicilio = asistencia.getDomicilio();
+                            alumnoDB.hora_manana = asistencia.getHora_manana();
+                            alumnoDB.hora_regreso = asistencia.getHoraRegreso();
+                            alumnoDB.ascenso = asistencia.getAscenso();
+                            alumnoDB.domicilio_s = asistencia.getDomicilio_s();
+                            alumnoDB.grupo = asistencia.getGrupo();
+                            alumnoDB.grado = asistencia.getGrado();
+                            alumnoDB.nivel = asistencia.getNivel();
+                            alumnoDB.descenso = asistencia.getDescenso();
+                            alumnoDB.ascenso_t = asistencia.getAscenso_t();
+                            alumnoDB.descenso_t = asistencia.getDescenso_t();
+                            alumnoDB.procesado=0;
+                            Log.d("ALUMNOS",""+alumnoDB.save());
 
                         }
 
 
-
-
-                        //TODO: Cambiarlo cuando pase a prueba en MX
-                        // if (existe.equalsIgnoreCase("1")) {
-                        //llenado de datos
-                        //eliminar circulares y guardar las primeras 10 del registro
-                        //Borra toda la tabla
-                        /*new Delete().from(DBCircular.class).execute();
-
-                        for(int i=0; i<10; i++){
-                            DBCircular dbCircular = new DBCircular();
-                            dbCircular.idCircular = circulares.get(i).getIdCircular();
-                            dbCircular.estado = circulares.get(i).getEstado();
-                            dbCircular.nombre = circulares.get(i).getNombre();
-                            dbCircular.textoCircular = circulares.get(i).getTextoCircular();
-                            dbCircular.save();
-                        }*/
-
-
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
 
                     }
+
+
+
+
+                    //TODO: Cambiarlo cuando pase a prueba en MX
+                    // if (existe.equalsIgnoreCase("1")) {
+                    //llenado de datos
+                    //eliminar circulares y guardar las primeras 10 del registro
+                    //Borra toda la tabla
+                    /*new Delete().from(DBCircular.class).execute();
+
+                    for(int i=0; i<10; i++){
+                        DBCircular dbCircular = new DBCircular();
+                        dbCircular.idCircular = circulares.get(i).getIdCircular();
+                        dbCircular.estado = circulares.get(i).getEstado();
+                        dbCircular.nombre = circulares.get(i).getNombre();
+                        dbCircular.textoCircular = circulares.get(i).getTextoCircular();
+                        dbCircular.save();
+                    }*/
+
+
+
                 }, new Response.ErrorListener()
         {
             @Override
             public void onErrorResponse(VolleyError error)
             {
                 VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
+
 
             }
         });
@@ -1250,7 +1253,7 @@ public class InicioActivity extends AppCompatActivity {
         //Ascensot 1
         //Descensot 0
         new Update(AlumnoDB.class)
-                .set("ascenso_t='1', descenso_t='0', salida='0',procesado=1")
+                .set("ascenso_t='1', descenso_t='0', salida='0',procesado='1'")
                 .where("id_ruta_h="+ruta_id+" AND id_alumno="+idAlumno)
                 .execute();
 
@@ -1262,7 +1265,7 @@ public class InicioActivity extends AppCompatActivity {
         //Ascensot 1
         //Descensot 0
         new Update(AlumnoDB.class)
-                .set("ascenso_t='1', descenso_t='0', salida='0',procesado=1")
+                .set("ascenso_t='1', descenso_t='0', salida='0',procesado='1'")
                 .where("id_ruta_h="+ruta_id)
                 .execute();
 
@@ -1274,7 +1277,7 @@ public class InicioActivity extends AppCompatActivity {
         //Ascenso 1
         //Descenso 0
         new Update(AlumnoDB.class)
-                .set("ascenso='1', descenso='0', procesado=1")
+                .set("ascenso='1', descenso='0', procesado='1'")
                 .where("id_ruta_h="+ruta_id+" AND id_alumno="+idAlumno)
                 .execute();
 
@@ -1287,7 +1290,7 @@ public class InicioActivity extends AppCompatActivity {
         //Ascenso 2
         //Descenso 2
         new Update(AlumnoDB.class)
-                .set("ascenso='2', descenso='2', procesado=1")
+                .set("ascenso='2', descenso='2', procesado='1'")
                 .where("id_ruta_h="+ruta_id+" AND id_alumno="+idAlumno)
                 .execute();
 
@@ -1307,62 +1310,58 @@ public class InicioActivity extends AppCompatActivity {
     }
     public void registraComentario(String ruta_id,String metodo, final String comentario){
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+metodo+"?comentario="+comentario.replace(" ","%20")+"&id_ruta="+ruta_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
+                response -> {
 
-                        if(response.length()<=0){
-
-                        }
-
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                //inasistencias  = jsonObject.getString("recuento");
-
-                            }
-
-                            items.clear();
-
-                            if(turno.equalsIgnoreCase(TURNO_MAN)){
-                                if(!hayConexion())
-                                    getAsistenciaDB(idRuta);
-                                else
-                                if(estatus<2){
-                                    getAsistencia(idRuta,METODO_ALUMNOS_MAT);
-                                }else{
-                                    Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
-                                }
-
-                            }
-                            if(turno.equalsIgnoreCase(TURNO_TAR)){
-                                if(!hayConexion())
-                                    getAsistenciaDB(idRuta);
-                                else
-                                if(estatus<2){
-                                    getAsistencia(idRuta,METODO_ALUMNOS_TAR);
-                                }else{
-                                    Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
-                                }
-
-                            }
-
-                            notifyAdapter();
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
-
-                        }
-
-                        //Obtener ascensos, sumarlo con las inasistencias, comparar con el
-                        //total de alumnos en la ruta
-
-
+                    if(response.length()<=0){
 
                     }
+
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            //inasistencias  = jsonObject.getString("recuento");
+
+                        }
+
+                        items.clear();
+
+                        if(turno.equalsIgnoreCase(TURNO_MAN)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                            if(estatus<2){
+                                getAsistencia(idRuta,METODO_ALUMNOS_MAT);
+                            }else{
+                                Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+                        if(turno.equalsIgnoreCase(TURNO_TAR)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                            if(estatus<2){
+                                getAsistencia(idRuta,METODO_ALUMNOS_TAR);
+                            }else{
+                                Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+
+                        notifyAdapter();
+
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
+
+                    }
+
+                    //Obtener ascensos, sumarlo con las inasistencias, comparar con el
+                    //total de alumnos en la ruta
+
+
+
                 }, new Response.ErrorListener()
         {
             @Override
@@ -1381,62 +1380,60 @@ public class InicioActivity extends AppCompatActivity {
     public void registraAscenso(String alumno_id, String ruta_id,final String alumno){
 
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_ALUMNO_ASISTE+"?id_alumno="+alumno_id+"&id_ruta="+ruta_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
+                response -> {
 
-                        if(response.length()<=0){
-
-                        }
-
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                //inasistencias  = jsonObject.getString("recuento");
-
-                            }
-
-                            items.clear();
-
-                            if(turno.equalsIgnoreCase(TURNO_MAN)){
-                                if(!hayConexion())
-                                    getAsistenciaDB(idRuta);
-                                else
-                                if(estatus<2){
-                                    getAsistencia(idRuta,METODO_ALUMNOS_MAT);
-                                }else{
-                                    Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
-                                }
-
-                            }
-                            if(turno.equalsIgnoreCase(TURNO_TAR)){
-                                if(!hayConexion())
-                                    getAsistenciaDB(idRuta);
-                                else
-                                if(estatus<2){
-                                    getAsistencia(idRuta,METODO_ALUMNOS_TAR);
-                                }else{
-                                    Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
-                                }
-
-                            }
-
-                            notifyAdapter();
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
-
-                        }
-
-                        //Obtener ascensos, sumarlo con las inasistencias, comparar con el
-                        //total de alumnos en la ruta
-
-
+                    if(response.length()<=0){
 
                     }
+
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            //inasistencias  = jsonObject.getString("recuento");
+
+                        }
+
+                        items.clear();
+
+                        if(turno.equalsIgnoreCase(TURNO_MAN)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                            if(estatus<2){
+                                getAsistencia(idRuta,METODO_ALUMNOS_MAT);
+                            }else{
+                                Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+                        if(turno.equalsIgnoreCase(TURNO_TAR)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                            if(estatus<2){
+                                getAsistencia(idRuta,METODO_ALUMNOS_TAR);
+                            }else{
+                                Toast.makeText(getApplicationContext(),"Esta ruta ya fue cerrada",Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+
+                        notifyAdapter();
+
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
+
+                    }
+
+
+
+                    //Obtener ascensos, sumarlo con las inasistencias, comparar con el
+                    //total de alumnos en la ruta
+
+
+
                 }, new Response.ErrorListener()
         {
             @Override
@@ -1454,54 +1451,50 @@ public class InicioActivity extends AppCompatActivity {
     }
     public void registraDescenso(String alumno_id, String ruta_id,final String alumno){
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_ALUMNO_DESC+"?id_alumno="+alumno_id+"&id_ruta="+ruta_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
+                response -> {
 
-                        if(response.length()<=0){
-
-                        }
-
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                //inasistencias  = jsonObject.getString("recuento");
-
-                            }
-
-                            items.clear();
-
-                            if(turno.equalsIgnoreCase(TURNO_MAN)){
-                                if(!hayConexion())
-                                    getAsistenciaDB(idRuta);
-                                else
-                                    getAsistencia(idRuta,METODO_ALUMNOS_MAT);
-
-                            }
-                            if(turno.equalsIgnoreCase(TURNO_TAR)){
-                                if(!hayConexion())
-                                    getAsistenciaDB(idRuta);
-                                else
-                                    getAsistencia(idRuta,METODO_ALUMNOS_TAR);
-
-                            }
-
-                            notifyAdapter();
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
-
-                        }
-
-                        //Obtener ascensos, sumarlo con las inasistencias, comparar con el
-                        //total de alumnos en la ruta
-
-
+                    if(response.length()<=0){
 
                     }
+
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            //inasistencias  = jsonObject.getString("recuento");
+
+                        }
+
+                        items.clear();
+
+                        if(turno.equalsIgnoreCase(TURNO_MAN)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                                getAsistencia(idRuta,METODO_ALUMNOS_MAT);
+
+                        }
+                        if(turno.equalsIgnoreCase(TURNO_TAR)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                                getAsistencia(idRuta,METODO_ALUMNOS_TAR);
+
+                        }
+
+                        notifyAdapter();
+
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
+
+                    }
+
+                    //Obtener ascensos, sumarlo con las inasistencias, comparar con el
+                    //total de alumnos en la ruta
+
+
+
                 }, new Response.ErrorListener()
         {
             @Override
@@ -1517,10 +1510,69 @@ public class InicioActivity extends AppCompatActivity {
         AppTransporte.getInstance().addToRequestQueue(req);
 
     }
-
-
     public void registraDescensoRutaMan(String ruta_id){
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_RUTA_DESC+"?id_ruta="+ruta_id,
+                response -> {
+
+                    if(response.length()<=0){
+
+                    }
+
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            //inasistencias  = jsonObject.getString("recuento");
+
+                        }
+
+                        items.clear();
+
+                        if(turno.equalsIgnoreCase(TURNO_MAN)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                                getAsistencia(idRuta,METODO_ALUMNOS_MAT);
+
+                        }
+                        if(turno.equalsIgnoreCase(TURNO_TAR)){
+                            if(!hayConexion())
+                                getAsistenciaDB(idRuta);
+                            else
+                                getAsistencia(idRuta,METODO_ALUMNOS_TAR);
+
+                        }
+
+                        notifyAdapter();
+
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
+
+                    }
+
+                    //Obtener ascensos, sumarlo con las inasistencias, comparar con el
+                    //total de alumnos en la ruta
+
+
+
+                }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error)
+            {
+                VolleyLog.d("ERROR", "Error: " + error.getMessage());
+
+
+            }
+        });
+
+        // Adding request to request queue
+        AppTransporte.getInstance().addToRequestQueue(req);
+
+    }
+    public void registraDescensoRutaTar(String ruta_id){
+        JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_RUTA_DESC_TARDE+"?id_ruta="+ruta_id,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
@@ -1559,7 +1611,6 @@ public class InicioActivity extends AppCompatActivity {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1584,7 +1635,6 @@ public class InicioActivity extends AppCompatActivity {
         AppTransporte.getInstance().addToRequestQueue(req);
 
     }
-
     public void registraAscensoRutaTar(String ruta_id){
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_RUTA_ASC+"?id_ruta="+ruta_id,
                 new Response.Listener<JSONArray>() {
@@ -1625,7 +1675,6 @@ public class InicioActivity extends AppCompatActivity {
                         }catch (JSONException e)
                         {
                             e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
 
                         }
 
@@ -1650,9 +1699,7 @@ public class InicioActivity extends AppCompatActivity {
         AppTransporte.getInstance().addToRequestQueue(req);
 
     }
-
     public void registraDescensoTarde(String alumno_id, String ruta_id,final String alumno){
-        Toast.makeText(getApplicationContext(),""+estatus,Toast.LENGTH_LONG).show();
 
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_ALUMNO_DESC_TARDE+"?id_alumno="+alumno_id+"&id_ruta="+ruta_id,
                 new Response.Listener<JSONArray>() {
@@ -2070,10 +2117,9 @@ public class InicioActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<Ruta> call, retrofit2.Response<Ruta> response) {
                         if(response.isSuccessful()){
-                             SharedPreferences.Editor editor = sharedPreferences.edit();
+                             /*SharedPreferences.Editor editor = sharedPreferences.edit();
                              editor.putInt("estatus",Integer.parseInt(r.getEstatus()));
-                             editor.apply();
-
+                             editor.apply();*/
                              Toast.makeText(getApplicationContext(),"La ruta ha sido cerrada",Toast.LENGTH_LONG).show();
 
 
@@ -2143,14 +2189,20 @@ public class InicioActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(final MenuItem item) {
 
         if (item.getItemId() == R.id.action_back) {
-            super.onBackPressed();
+            //super.onBackPressed();
+            Intent intent = new Intent(InicioActivity.this, SeleccionRutaActivity.class);
+            startActivity(intent);
+            finish();
         }
 
         if(item.getItemId()==R.id.action_bajar){
 
 
-            if(turno.equalsIgnoreCase(TURNO_MAN)){
-                if(estatus==1) {
+            Log.d("TURNO",turno);
+
+
+            if(turno.equalsIgnoreCase(TURNO_MAN)) {
+                if (estatus == 1) {
 
 
                     new android.app.AlertDialog.Builder(InicioActivity.this)
@@ -2159,8 +2211,87 @@ public class InicioActivity extends AppCompatActivity {
 
                             .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
-                                    if(hayConexion())
+                                    if (hayConexion())
                                         registraDescensoRutaMan(idRuta);
+                                    else
+                                        registraDescensoDB(idRuta);
+
+                                }
+                            })
+
+                            .setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+
+
+                            .setIcon(R.drawable.logo2)
+                            .show();
+
+
+                    //Bajar todos los que van en el camión y llegaron al colegio
+
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "Esto solo funciona para el turno de la mañana para bajar a todos los alumnos", Toast.LENGTH_LONG).show();
+                }
+
+                //Subirlos a todos en la mañana
+                if (estatus == 0) {
+
+
+                    new android.app.AlertDialog.Builder(InicioActivity.this)
+                            .setTitle("Transporte")
+                            .setMessage("¿Desea efectuar el ascenso de todos los alumnos de la ruta de la mañana?")
+
+                            .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (hayConexion())
+                                        registraAscensoRutaTar(idRuta);
+                                    else
+                                        registraAscensoTardeDB(idRuta);
+
+                                }
+                            })
+
+                            .setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+
+
+                            .setIcon(R.drawable.logo2)
+                            .show();
+
+
+                    //Bajar todos los que van en el camión y llegaron al colegio
+
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "Esto solo funciona para el turno de la mañana para bajar a todos los alumnos", Toast.LENGTH_LONG).show();
+                }
+
+            }
+
+
+            if(turno.equalsIgnoreCase(TURNO_TAR)){
+
+                //Bajarlos en la tarde (llegan a Destino)
+                if(estatus==1) {
+
+
+                    new android.app.AlertDialog.Builder(InicioActivity.this)
+                            .setTitle("Transporte")
+                            .setMessage("¿Desea efectuar el descenso de todos los alumnos de la ruta de la tarde?")
+
+                            .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if(hayConexion())
+                                        registraDescensoRutaTar(idRuta);
                                     else
                                         registraDescensoDB(idRuta);
 
@@ -2187,8 +2318,8 @@ public class InicioActivity extends AppCompatActivity {
                 }else{
                     Toast.makeText(getApplicationContext(),"Esto solo funciona para el turno de la mañana para bajar a todos los alumnos",Toast.LENGTH_LONG).show();
                 }
-            }else{
-                //Turno de la tarde (subirlos al bus en la tarde)
+
+                //Subirlos en la tarde (Origen --> Colegio)
                 if(estatus==0) {
 
 
@@ -2226,9 +2357,8 @@ public class InicioActivity extends AppCompatActivity {
                 }else{
                     Toast.makeText(getApplicationContext(),"Esto solo funciona para el turno de la mañana para bajar a todos los alumnos",Toast.LENGTH_LONG).show();
                 }
+
             }
-
-
 
 
 
@@ -2247,49 +2377,7 @@ public class InicioActivity extends AppCompatActivity {
         }
 
 
-        if(item.getItemId() == R.id.action_logout){
 
-            new android.app.AlertDialog.Builder(InicioActivity.this)
-                    .setTitle("Transporte")
-                    .setMessage("¿Desea cerrar sesión?")
-
-                    .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("adm_id","0");
-                            editor.putString("id_usuario","0");
-                            editor.putString("correo","");
-                            editor.putInt("cuentaValida",0);
-                            editor.apply();
-                            //Finalizar el service
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
-                            }else{
-                                stopService(new Intent(InicioActivity.this, LocalizacionService.class));
-                            }
-
-
-                            Intent intent = new Intent(InicioActivity.this,LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-
-
-                        }
-                    })
-
-                    .setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    })
-
-
-                    .setIcon(R.drawable.logo2)
-                    .show();
-
-
-        }
 
         return true;
     }
@@ -2342,6 +2430,7 @@ public class InicioActivity extends AppCompatActivity {
             NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
             nfcAdapter.disableForegroundDispatch(this);
         }
+
     }
     @Override
     protected void onNewIntent(Intent intent) {
@@ -2402,9 +2491,7 @@ public class InicioActivity extends AppCompatActivity {
                 //mTextView.setText( "NFC Tag\n" + ByteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_TAG)));
             }
         }else{
-            Toast.makeText(getApplicationContext(),
-                    "NFC no está habilitado en el dispositivo, solo puede trabajar de forma manual",
-                    Toast.LENGTH_LONG).show();
+
         }
 
     }

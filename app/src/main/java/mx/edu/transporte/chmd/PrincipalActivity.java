@@ -193,9 +193,7 @@ public class PrincipalActivity extends AppCompatActivity
                 break;
             case R.id.ruta_tar:
                 title = R.string.closeDrawer;
-                /*SharedPreferences.Editor editor1 = sharedPreferences.edit();
-                editor1.putString("turno","2");
-                editor1.commit();*/
+
                 getRutaTransporteTarde(id_usuario);
                 replaceFragment(R.id.home_content,new HomeFragment(),"","B");
                 FragmentManager fm2 = getFragmentManager();
@@ -264,91 +262,53 @@ public class PrincipalActivity extends AppCompatActivity
 
 
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_RUTA+"?aux_id="+aux_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
+                response -> {
 
 
 
-                        if(response.length()<=0){
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                    if(response.length()<=0){
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
-                            editor.commit();
+                         editor.commit();
+                    }
+
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            String id_ruta_h = jsonObject.getString("id_ruta_h");
+                            String nombre_ruta = jsonObject.getString("nombre_ruta");
+                            String camion = jsonObject.getString("camion");
+                            String turno = jsonObject.getString("turno");
+                            String tipo_ruta = jsonObject.getString("tipo_ruta");
+                            items.add(new Ruta(id_ruta_h,nombre_ruta,camion,turno,tipo_ruta));
                         }
-
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                String id_ruta_h = jsonObject.getString("id_ruta_h");
-                                String nombre_ruta = jsonObject.getString("nombre_ruta");
-                                String camion = jsonObject.getString("camion");
-                                String turno = jsonObject.getString("turno");
-                                String tipo_ruta = jsonObject.getString("tipo_ruta");
-                                items.add(new Ruta(id_ruta_h,nombre_ruta,camion,turno,tipo_ruta));
-                            }
-                            //RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
-                            //lstRuta.setAdapter(adapter);
-                            //La ruta de la mañana se muestra por defecto
-                            String idRuta = items.get(0).getIdRutaH();
-                            String nomRuta = items.get(0).getNombreRuta();
-                            String turno = items.get(0).getTurno();
-                            getEstatusRuta(id_usuario,idRuta,nomRuta,turno);
+                        //RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
+                        //lstRuta.setAdapter(adapter);
+                        //La ruta de la mañana se muestra por defecto
+                        String idRuta = items.get(0).getIdRutaH();
+                        String nomRuta = items.get(0).getNombreRuta();
+                        String turno = items.get(0).getTurno();
+                        getEstatusRuta(id_usuario,idRuta,nomRuta,turno);
 
 
 
-                            //Borrar tabla de rutas
-                            new Delete().from(RutaDB.class).execute();
-                            //Llenar tabla de rutas
-                            /*for(int j=0; j<items.size(); j++){
-                                RutaDB rutaDB = new RutaDB();
-                                rutaDB.idRuta = items.get(j).getIdRutaH();
-                                rutaDB.nombreRuta = items.get(j).getNombreRuta();
-                                rutaDB.camion = items.get(j).getCamion();
-                                rutaDB.turno = items.get(j).getTurno();
-                                rutaDB.tipo_ruta = items.get(j).getTipoRuta();
-                                rutaDB.save();
-                            }*/
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
+                        //Borrar tabla de rutas
+                        new Delete().from(RutaDB.class).execute();
+                        //Llenar tabla de rutas
 
 
-                        }
-                        //TODO: Cambiarlo cuando pase a prueba en MX
-                        // if (existe.equalsIgnoreCase("1")) {
-                        //llenado de datos
-                        //eliminar circulares y guardar las primeras 10 del registro
-                        //Borra toda la tabla
-                        /*new Delete().from(DBCircular.class).execute();
-
-                        for(int i=0; i<10; i++){
-                            DBCircular dbCircular = new DBCircular();
-                            dbCircular.idCircular = circulares.get(i).getIdCircular();
-                            dbCircular.estado = circulares.get(i).getEstado();
-                            dbCircular.nombre = circulares.get(i).getNombre();
-                            dbCircular.textoCircular = circulares.get(i).getTextoCircular();
-                            dbCircular.save();
-                        }*/
-
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
 
 
                     }
-                }, new Response.ErrorListener()
-        {
-            @Override
-            public void onErrorResponse(VolleyError error)
-            {
-                VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
 
-            }
-        });
+
+
+
+                }, error -> VolleyLog.d("ERROR", "Error: " + error.getMessage()));
 
         // Adding request to request queue
         AppTransporte.getInstance().addToRequestQueue(req);
@@ -357,91 +317,57 @@ public class PrincipalActivity extends AppCompatActivity
 
 
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_RUTA+"?aux_id="+aux_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
+                response -> {
 
+                    if(response.length()<=0){
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
 
+                        editor.commit();
+                    }
 
-                        if(response.length()<=0){
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-
-                            //Toast.makeText(getApplicationContext(),foto,Toast.LENGTH_LONG).show();
-                            editor.commit();
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            String id_ruta_h = jsonObject.getString("id_ruta_h");
+                            String nombre_ruta = jsonObject.getString("nombre_ruta");
+                            String camion = jsonObject.getString("camion");
+                            String turno = jsonObject.getString("turno");
+                            String tipo_ruta = jsonObject.getString("tipo_ruta");
+                            items.add(new Ruta(id_ruta_h,nombre_ruta,camion,turno,tipo_ruta));
                         }
 
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                String id_ruta_h = jsonObject.getString("id_ruta_h");
-                                String nombre_ruta = jsonObject.getString("nombre_ruta");
-                                String camion = jsonObject.getString("camion");
-                                String turno = jsonObject.getString("turno");
-                                String tipo_ruta = jsonObject.getString("tipo_ruta");
-                                items.add(new Ruta(id_ruta_h,nombre_ruta,camion,turno,tipo_ruta));
-                            }
-                            //RutaAdapter adapter = new RutaAdapter(SeleccionRutaActivity.this,items);
-                            //lstRuta.setAdapter(adapter);
-                            //La ruta de la mañana se muestra por defecto
-                            String idRuta = items.get(1).getIdRutaH();
-                            String nomRuta = items.get(1).getNombreRuta();
-                            String turno = items.get(1).getTurno();
-                            getEstatusRuta(id_usuario,idRuta,nomRuta,turno);
+                        String idRuta = items.get(1).getIdRutaH();
+                        String nomRuta = items.get(1).getNombreRuta();
+                        String turno = items.get(1).getTurno();
+                        getEstatusRuta(id_usuario,idRuta,nomRuta,turno);
 
 
 
-                            //Borrar tabla de rutas
-                            new Delete().from(RutaDB.class).execute();
-                            //Llenar tabla de rutas
-                            for(int j=0; j<items.size(); j++){
-                                RutaDB rutaDB = new RutaDB();
-                                rutaDB.idRuta = items.get(j).getIdRutaH();
-                                rutaDB.nombreRuta = items.get(j).getNombreRuta();
-                                rutaDB.camion = items.get(j).getCamion();
-                                rutaDB.turno = items.get(j).getTurno();
-                                rutaDB.tipo_ruta = items.get(j).getTipoRuta();
-                                rutaDB.save();
-                            }
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-
-
+                        //Borrar tabla de rutas
+                        new Delete().from(RutaDB.class).execute();
+                        //Llenar tabla de rutas
+                        for(int j=0; j<items.size(); j++){
+                            RutaDB rutaDB = new RutaDB();
+                            rutaDB.idRuta = items.get(j).getIdRutaH();
+                            rutaDB.nombreRuta = items.get(j).getNombreRuta();
+                            rutaDB.camion = items.get(j).getCamion();
+                            rutaDB.turno = items.get(j).getTurno();
+                            rutaDB.tipo_ruta = items.get(j).getTipoRuta();
+                            rutaDB.save();
                         }
-                        //TODO: Cambiarlo cuando pase a prueba en MX
-                        // if (existe.equalsIgnoreCase("1")) {
-                        //llenado de datos
-                        //eliminar circulares y guardar las primeras 10 del registro
-                        //Borra toda la tabla
-                        /*new Delete().from(DBCircular.class).execute();
 
-                        for(int i=0; i<10; i++){
-                            DBCircular dbCircular = new DBCircular();
-                            dbCircular.idCircular = circulares.get(i).getIdCircular();
-                            dbCircular.estado = circulares.get(i).getEstado();
-                            dbCircular.nombre = circulares.get(i).getNombre();
-                            dbCircular.textoCircular = circulares.get(i).getTextoCircular();
-                            dbCircular.save();
-                        }*/
-
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
 
 
                     }
-                }, new Response.ErrorListener()
-        {
-            @Override
-            public void onErrorResponse(VolleyError error)
-            {
-                VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
 
-            }
-        });
+
+
+
+                }, error -> VolleyLog.d("ERROR", "Error: " + error.getMessage()));
 
         // Adding request to request queue
         AppTransporte.getInstance().addToRequestQueue(req);
@@ -449,93 +375,54 @@ public class PrincipalActivity extends AppCompatActivity
 
     public void getEstatusRuta(String aux_id,final String ruta_id,final String nomRuta, final String turno){
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_ESTADO_RUTA+"?aux_id="+aux_id+"&ruta_id="+ruta_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        if(response.length()<=0){
+                response -> {
+                    if(response.length()<=0){
 
+                    }
+
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            estatus =  Integer.parseInt(jsonObject.getString("estatus"));
                         }
 
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                estatus =  Integer.parseInt(jsonObject.getString("estatus"));
+                        if(estatus<2) {
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("idRuta",ruta_id);
+                            editor.putString("nomRuta",nomRuta);
+                            editor.putString("turno",turno);
+                            editor.putInt("estatus",estatus);
+                            editor.commit();
+                            if(turno.equals("1")){
+                                replaceFragment(R.id.home_content,new HomeFragment(),"","1");
+                                FragmentManager fm = getFragmentManager();
+                                fm.popBackStack();
                             }
 
-                            if(estatus<2) {
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("idRuta",ruta_id);
-                                editor.putString("nomRuta",nomRuta);
-                                editor.putString("turno",turno);
-                                editor.putInt("estatus",estatus);
-                                editor.commit();
-                                if(turno.equals("1")){
-                                    replaceFragment(R.id.home_content,new HomeFragment(),"","1");
-                                    FragmentManager fm = getFragmentManager();
-                                    fm.popBackStack();
-                                }
-
-                                if(turno.equals("2")){
-                                    replaceFragment(R.id.home_content,new HomeFragment(),"","2");
-                                    FragmentManager fm = getFragmentManager();
-                                    fm.popBackStack();
-                                }
-
-                                /*Intent intent = new Intent(PrincipalActivity.this, HomeActivity.class);
-                                intent.putExtra("idRuta", ruta_id);
-                                intent.putExtra("estatus",estatus);
-                                intent.putExtra("nomRuta", nomRuta);
-                                intent.putExtra("turno", turno);*/
-
-                                /*SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putInt("estatus",estatus);
-                                editor.apply();
-
-                                startActivity(intent);*/
-                            }else{
-                                Toast.makeText(getApplicationContext(),"Esta ruta ya está cerrada",Toast.LENGTH_LONG).show();
+                            if(turno.equals("2")){
+                                replaceFragment(R.id.home_content,new HomeFragment(),"","2");
+                                FragmentManager fm = getFragmentManager();
+                                fm.popBackStack();
                             }
 
 
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-
-
+                        }else{
+                            Toast.makeText(getApplicationContext(),"Esta ruta ya está cerrada",Toast.LENGTH_LONG).show();
                         }
-                        //TODO: Cambiarlo cuando pase a prueba en MX
-                        // if (existe.equalsIgnoreCase("1")) {
-                        //llenado de datos
-                        //eliminar circulares y guardar las primeras 10 del registro
-                        //Borra toda la tabla
-                        /*new Delete().from(DBCircular.class).execute();
 
-                        for(int i=0; i<10; i++){
-                            DBCircular dbCircular = new DBCircular();
-                            dbCircular.idCircular = circulares.get(i).getIdCircular();
-                            dbCircular.estado = circulares.get(i).getEstado();
-                            dbCircular.nombre = circulares.get(i).getNombre();
-                            dbCircular.textoCircular = circulares.get(i).getTextoCircular();
-                            dbCircular.save();
-                        }*/
 
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
 
 
                     }
-                }, new Response.ErrorListener()
-        {
-            @Override
-            public void onErrorResponse(VolleyError error)
-            {
-                VolleyLog.d("ERROR", "Error: " + error.getMessage());
-                /*
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                        */
 
-            }
-        });
+
+
+
+                }, error -> VolleyLog.d("ERROR", "Error: " + error.getMessage()));
 
         // Adding request to request queue
         AppTransporte.getInstance().addToRequestQueue(req);
@@ -681,7 +568,6 @@ public class PrincipalActivity extends AppCompatActivity
 
         //mTextView.setText('\n' + sb.toString());
         //textView1.setText(hexadecimal);
-        Toast.makeText(getApplicationContext(),hexadecimal,Toast.LENGTH_LONG).show();
         //Esto va a manejar la asistencia mediante el carnet
 
         return sb.toString();

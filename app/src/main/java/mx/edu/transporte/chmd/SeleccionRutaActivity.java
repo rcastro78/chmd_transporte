@@ -62,6 +62,30 @@ public class SeleccionRutaActivity extends AppCompatActivity {
         super.onBackPressed();
         finish();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        id_usuario = sharedPreferences.getString("id_usuario","");
+
+        if(hayConexion())
+            try {
+                getRutaTransporte2(id_usuario);
+            }catch(Exception ex){
+                Toast.makeText(getApplicationContext(),"No tienes rutas asignadas.",Toast.LENGTH_LONG).show();
+            }
+        else
+            try {
+                obtenerRutas();
+            }catch (Exception ex){
+                Toast.makeText(getApplicationContext(),"No tienes rutas asignadas o tu app no está actualizada. Necesitas una conexión a Internet.",Toast.LENGTH_LONG).show();
+            }
+    }
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,120 +102,101 @@ public class SeleccionRutaActivity extends AppCompatActivity {
         lstRuta = findViewById(R.id.lstRuta);
         fabLogout = findViewById(R.id.fabLogout);
 
-        if(retornar==1){
-            Intent intent = new Intent(SeleccionRutaActivity.this,InicioActivity.class);
-            startActivity(intent);
-        }
+        fabLogout.setOnClickListener(v -> new android.app.AlertDialog.Builder(SeleccionRutaActivity.this)
+                .setTitle("Transporte")
+                .setMessage("¿Desea cerrar sesión?")
 
-
-
-
-        fabLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new android.app.AlertDialog.Builder(SeleccionRutaActivity.this)
-                        .setTitle("Transporte")
-                        .setMessage("¿Desea cerrar sesión?")
-
-                        .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("adm_id","0");
-                                editor.putString("id_usuario","0");
-                                editor.putString("correo","");
-                                editor.putInt("cuentaValida",0);
-                                editor.putInt("retornar",0);
-                                editor.apply();
-                                Intent intent = new Intent(SeleccionRutaActivity.this,LoginActivity.class);
-                                startActivity(intent);
-                                finish();
-
-
-                            }
-                        })
-
-                        .setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-
-
-                        .setIcon(R.drawable.logo2)
-                        .show();
-
-            }
-        });
-
-        if(cuentaValida==0)
-        {
-            System.exit(0);
-            finish();
-        }
-        if(hayConexion())
-            getRutaTransporte2(id_usuario);
-        else
-            obtenerRutas();
-
-        lstRuta.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-
-
-
-                Ruta r = (Ruta)lstRuta.getItemAtPosition(position);
-                String idRuta = r.getIdRutaH();
-
-                if(!idRuta.equalsIgnoreCase("0")) {
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        startForegroundService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
-                    }else{
-                        startService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
-                    }
-
-                    String nomRuta = r.getNombreRuta();
-                    String turno = r.getTurno();
+                .setPositiveButton("Sí", (dialog, which) -> {
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("nombreRuta", nomRuta);
-                    editor.putString("idRuta",idRuta);
+                    editor.putString("adm_id","0");
+                    editor.putString("id_usuario","0");
+                    editor.putString("correo","");
+                    editor.putInt("cuentaValida",0);
                     editor.putInt("retornar",0);
                     editor.apply();
-                    if(hayConexion())
-                        getEstatusRuta(id_usuario, idRuta, nomRuta, turno);
-                    else{
-                        Ruta r1 = obtenerRutas(idRuta);
-                        String nomRuta1 = r1.getNombreRuta();
-                        String turno1 = r1.getTurno();
-                        SharedPreferences.Editor editor1 = sharedPreferences.edit();
-                        editor1.putString("nombreRuta", nomRuta1);
-                        editor1.putInt("retornar",0);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        stopService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
+                    }else{
+                        stopService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
+                    }
+
+
+
+                    Intent intent = new Intent(SeleccionRutaActivity.this,LoginActivity.class);
+                    startActivity(intent);
+                    finish();
+
+
+                })
+
+                .setNeutralButton("Cancelar", (dialog, which) -> dialog.dismiss())
+
+
+                .setIcon(R.drawable.logo2)
+                .show());
+
+
+        lstRuta.setOnItemClickListener((parent, view, position, id) -> {
+
+            Ruta r = (Ruta)lstRuta.getItemAtPosition(position);
+            String idRuta = r.getIdRutaH();
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("nRuta", r.getNombreRuta());
+            editor.apply();
+
+
+            if(!idRuta.equalsIgnoreCase("0")) {
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
+                }else{
+                    startService(new Intent(SeleccionRutaActivity.this, LocalizacionService.class));
+                }
+
+                String nomRuta1="",turno1="";
+                String nomRuta = r.getNombreRuta();
+                String turno = r.getTurno();
+
+                editor.putString("nombreRuta", nomRuta);
+                editor.putString("idRuta",idRuta);
+                editor.putInt("retornar",0);
+                editor.putString("turno",turno);
+                editor.apply();
+                if(hayConexion())
+                    getEstatusRuta(id_usuario, idRuta, nomRuta, turno);
+                else {
+                    Ruta r1 = obtenerRutas(idRuta);
+
+                    nomRuta1 = r1.getNombreRuta();
+                    turno1 = r1.getTurno();
+                    SharedPreferences.Editor editor1 = sharedPreferences.edit();
+                    editor.putString("idRuta",idRuta);
+                    editor1.putInt("retornar", 0);
+                    editor1.apply();
+
+
+                    if(estatus<2) {
+                        Intent intent = new Intent(SeleccionRutaActivity.this, InicioActivity.class);
+                        intent.putExtra("idRuta", idRuta);
+                        intent.putExtra("estatus", estatus);
+                        intent.putExtra("nomRuta", nomRuta1);
+                        intent.putExtra("turno", turno1);
+
+
+                        editor.putInt("estatus", estatus);
+                        editor.putString("idRuta", idRuta);
+                        editor.putString("nomRuta", nomRuta1);
+                        editor.putString("turno", turno1);
+
                         editor.apply();
-
-                        if(estatus<2) {
-                            Intent intent = new Intent(SeleccionRutaActivity.this, InicioActivity.class);
-                            intent.putExtra("idRuta", idRuta);
-                            intent.putExtra("estatus", estatus);
-                            intent.putExtra("nomRuta", nomRuta1);
-                            intent.putExtra("turno", turno1);
-
-                            SharedPreferences.Editor editor2 = sharedPreferences.edit();
-                            editor.putInt("estatus", estatus);
-
-                            editor.putInt("estatus", estatus);
-                            editor.putString("idRuta", idRuta);
-                            editor.putString("nomRuta", nomRuta1);
-                            editor.putString("turno", turno1);
-                            editor.apply();
-
-                            startActivity(intent);
-                        }
-
+                        startActivity(intent);
 
                     }
                 }
+
+
             }
         });
     }
@@ -199,63 +204,51 @@ public class SeleccionRutaActivity extends AppCompatActivity {
 
     public void getEstatusRuta(String aux_id,final String ruta_id,final String nomRuta, final String turno){
         JsonArrayRequest req = new JsonArrayRequest(BASE_URL+PATH+METODO_ESTADO_RUTA+"?aux_id="+aux_id+"&ruta_id="+ruta_id,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        if(response.length()<=0){
+                response -> {
+                    if(response.length()<=0){
 
-                        }
+                    }
 
-                        try {
-                            for(int i=0; i<response.length(); i++){
-                                JSONObject jsonObject = (JSONObject) response
-                                        .get(i);
-                                estatus =  Integer.parseInt(jsonObject.getString("estatus"));
-                         }
+                    try {
+                        for(int i=0; i<response.length(); i++){
+                            JSONObject jsonObject = (JSONObject) response
+                                    .get(i);
+                            estatus =  Integer.parseInt(jsonObject.getString("estatus"));
+                     }
 
-                            if(estatus<2) {
-                                Intent intent = new Intent(SeleccionRutaActivity.this, InicioActivity.class);
-                                intent.putExtra("idRuta", ruta_id);
-                                intent.putExtra("estatus",estatus);
-                                intent.putExtra("nomRuta", nomRuta);
-                                intent.putExtra("turno", turno);
+                        if(estatus<2) {
+                            Intent intent = new Intent(SeleccionRutaActivity.this, InicioActivity.class);
+                            intent.putExtra("idRuta", ruta_id);
+                            intent.putExtra("estatus",estatus);
+                            intent.putExtra("nomRuta", nomRuta);
+                            intent.putExtra("turno", turno);
 
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putInt("estatus",estatus);
-                                editor.putString("idRuta",ruta_id);
-                                editor.putInt("estatus",estatus);
-                                editor.putString("nomRuta",nomRuta);
-                                editor.putString("turno",turno);
-                                editor.apply();
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putInt("estatus",estatus);
+                            editor.putString("idRuta",ruta_id);
+                            editor.putInt("estatus",estatus);
+                            //editor.putString("nomRuta",nomRuta);
+                            editor.putString("turno",turno);
+                            editor.apply();
 
-                                startActivity(intent);
+                            startActivity(intent);
 
-                            }else{
-                                Toast.makeText(getApplicationContext(),"Esta ruta ya está cerrada",Toast.LENGTH_LONG).show();
-                            }
-
-
-                        }catch (JSONException e)
-                        {
-                            e.printStackTrace();
-
-
+                        }else{
+                            Toast.makeText(getApplicationContext(),"Esta ruta ya está cerrada",Toast.LENGTH_LONG).show();
                         }
 
 
+                    }catch (JSONException e)
+                    {
+                        e.printStackTrace();
 
 
                     }
-                }, new Response.ErrorListener()
-        {
-            @Override
-            public void onErrorResponse(VolleyError error)
-            {
-                VolleyLog.d("ERROR", "Error: " + error.getMessage());
 
 
-            }
-        });
+
+
+                }, error -> VolleyLog.d("ERROR", "Error: " + error.getMessage()));
 
 
         AppTransporte.getInstance().addToRequestQueue(req);
@@ -264,7 +257,7 @@ public class SeleccionRutaActivity extends AppCompatActivity {
 
     int i=0;
     public void getRutaTransporte2(String aux_id){
-
+        items.clear();
         Call<List<Ruta>> rutaTransporte = iTransporteCHMD.getRutaTransporte(aux_id);
         rutaTransporte.enqueue(new Callback<List<Ruta>>() {
             @Override
@@ -297,11 +290,9 @@ public class SeleccionRutaActivity extends AppCompatActivity {
                         if (tipo_ruta.equalsIgnoreCase("4")) {
                             truta = "R";
                         }
-                        if (Integer.parseInt(camion) < 10) {
-                            cmn = "0" + camion;
-                        } else {
+
                             cmn = camion;
-                        }
+
 
                         String codigo = trn + truta + cmn;
 

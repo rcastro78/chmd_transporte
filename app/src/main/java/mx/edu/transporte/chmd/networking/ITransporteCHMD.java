@@ -6,6 +6,7 @@ import kotlin.jvm.JvmMultifileClass;
 import mx.edu.transporte.chmd.modelos.Asistencia;
 import mx.edu.transporte.chmd.modelos.Ruta;
 import mx.edu.transporte.chmd.modelos.Usuario;
+import mx.edu.transporte.chmd.modelos.Valida;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -40,5 +41,17 @@ public interface ITransporteCHMD {
     Call<String> enviarRuta(@Field("id_ruta") String idRuta, @Field("aux_id") String aux_id,
                             @Field("latitud") String latitud, @Field("longitud") String longitud,
                             @Field("es_emergencia") String emergencia);
+
+
+    //Validaciones de sesión
+
+    @FormUrlEncoded
+    @POST("validarSesionApp.php")
+    Call<List<Valida>> validarSesion(@Field("usuario_id") String usuario_id,@Field("token") String token);
+
+    @FormUrlEncoded
+    @POST("crearSesion.php")
+    Call<String> crearSesion(@Field("usuario_id") String usuario_id,@Field("token") String token);
+
 
 }
